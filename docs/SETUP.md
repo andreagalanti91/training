@@ -49,12 +49,14 @@ assets/   data/program.json
 Le cartelle `scripts/`, `tests/`, `docs/`, `supabase/`, `data/weeks/`, `.claude/` servono solo
 in sviluppo e non vanno pubblicate.
 
-### Pubblicazione automatica (facoltativa)
+### Pubblicazione automatica
 
-Il workflow `.github/workflows/deploy.yml` pubblica via FTP a ogni push su `main`, se nel
-repository GitHub (Settings → Secrets and variables → Actions) imposti i secret
-`FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD` e, se serve, `FTP_DIR` (es. `/public_html/training/`).
-Senza secret il workflow si limita a validare la programmazione.
+Il workflow `.github/workflows/deploy.yml` valida la programmazione e pubblica via FTP a ogni push
+sul branch di lavoro (o su `main`). Servono i secret del repository GitHub
+(Settings → Secrets and variables → Actions → New repository secret):
+`FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`. La cartella del sito viene trovata da sola cercando
+`data/program.json`; per forzarla imposta anche `FTP_DIR` (es. `training.andreagalanti.it/`).
+Il repository è pubblico: le credenziali vanno **solo** nei secret, mai nei file.
 
 ## Dati degli utenti: cosa succede quando aggiorniamo
 

@@ -1,16 +1,26 @@
 name: Valida e pubblica
 
+# A ogni push sul branch di pubblicazione: valida la programmazione e carica il sito via FTP
+# su training.andreagalanti.it. Servono i secret FTP_SERVER, FTP_USERNAME, FTP_PASSWORD
+# (FTP_DIR facoltativo: senza, la cartella del sito viene trovata da sola).
 on:
   push:
-    branches: [main]
+    branches: [main, claude/workout-app-dev-5yek13]
   pull_request:
   workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
       FTP_SERVER: ${{ secrets.FTP_SERVER }}
+      FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      FTP_DIR: ${{ secrets.FTP_DIR }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,25 +30,42 @@ jobs:
         run: node scripts/build-program.mjs --check
       - name: data/program.json è aggiornato
         run: node scripts/build-program.mjs && git diff --exit-code data/program.json
+
+      - name: Trova la cartella del sito sul server
+        id: dir
+        if: github.event_name != 'pull_request' && env.FTP_SERVER != ''
+        run: |
+          if [ -n "$FTP_DIR" ]; then echo "path=$FTP_DIR" >> "$GITHUB_OUTPUT"; exit 0; fi
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp >/dev/null
+          found=$(lftp -u "$FTP_USERNAME,$FTP_PASSWORD" "$FTP_SERVER" -e "set ssl:verify-certificate no; set net:max-retries 2; set net:timeout 20; find -d 4 . ; bye" \
+            | grep -E '/data/program\.json$' | head -1)
+          echo "Trovato: ${found:-niente}"
+          if [ -z "$found" ]; then echo "::error::Cartella del sito non trovata: imposta il secret FTP_DIR"; exit 1; fi
+          dir="${found%data/program.json}"; dir="${dir#./}"; [ -z "$dir" ] && dir="./"
+          echo "Cartella del sito: $dir"
+          echo "path=$dir" >> "$GITHUB_OUTPUT"
+
+      - name: Prepara i file da pubblicare
+        if: steps.dir.outputs.path != ''
+        run: |
+          mkdir -p dist
+          cp -r index.html sw.js manifest.webmanifest .htaccess apple-touch-icon.png icon-192.png icon-512.png assets dist/
+          mkdir -p dist/data && cp data/program.json dist/data/
+
       - name: Pubblica via FTP
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && env.FTP_SERVER != ''
+        if: steps.dir.outputs.path != ''
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ${{ secrets.FTP_DIR || './' }}
-          exclude: |
-            **/.git*
-            **/.git*/**
-            .github/**
-            .claude/**
-            docs/**
-            scripts/**
-            supabase/**
-            tests/**
-            data/weeks/**
-            node_modules/**
-            CLAUDE.md
-            README.md
-            package.json
+          local-dir: ./dist/
+          server-dir: ${{ steps.dir.outputs.path }}
+
+      - name: Verifica online
+        if: steps.dir.outputs.path != ''
+        run: |
+          sleep 5
+          curl -fsS "https://training.andreagalanti.it/?t=$(date +%s)" | grep -q 'assets/app.js' \
+            && echo "Online: nuova versione pubblicata" \
+            || echo "::warning::La pagina online non mostra ancora la nuova versione (cache del server?)"
