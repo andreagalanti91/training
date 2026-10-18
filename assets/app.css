@@ -67,7 +67,7 @@ main{flex:1 1 auto;min-height:0;position:relative;z-index:1;width:100%;max-width
   overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
 main.locked{overflow:hidden}
 .view{animation:enter .3s cubic-bezier(.2,.8,.2,1)}
-.view.from-right{animation-name:fromR}.view.from-left{animation-name:fromL}
+.view.from-right{animation-name:fromR}.view.still{animation:none}.view.from-left{animation-name:fromL}
 @keyframes enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes fromR{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
 @keyframes fromL{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}

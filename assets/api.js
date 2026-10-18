@@ -77,6 +77,10 @@ export async function signUp(email, password, name) {
   const d = await request(`/auth/v1/signup?redirect_to=${redirectTo()}`, { method: "POST", body: { email, password, data: name ? { name } : {} } });
   // Con la conferma email attiva Supabase non restituisce una sessione: l'utente deve aprire il link.
   if (d?.access_token) { saveSession(fromTokenResponse(d)); return { needsConfirm: false }; }
+  // Email già registrata e confermata: Supabase risponde con un utente senza identità invece di un errore.
+  const u = d?.user || d;
+  if (Array.isArray(u?.identities) && u.identities.length === 0)
+    throw new ApiError("Esiste già un account con questa email. Prova ad accedere.", { status: 422, code: "user_already_exists" });
   return { needsConfirm: true };
 }
 

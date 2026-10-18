@@ -40,7 +40,7 @@ function persistLocal() { ls.set(cacheKey(), state); }
 function touch() {
   persistLocal();
   ls.set(dirtyKey(), true);
-  changeListeners.forEach(fn => fn());
+  changeListeners.forEach(fn => fn({ remote: false }));
   clearTimeout(saveTimer);
   saveTimer = setTimeout(flush, 700);
 }
@@ -75,7 +75,7 @@ export async function open(userId) {
     const changedLocally = !same(merged, state);
     state = merged; persistLocal();
     if (!remote || !same(merge(empty(), remote), merged)) ls.set(dirtyKey(), true);
-    if (changedLocally) changeListeners.forEach(fn => fn());
+    if (changedLocally) changeListeners.forEach(fn => fn({ remote: true }));
     setStatus("synced");
     await flush();
     return { synced: true };
@@ -94,7 +94,7 @@ export async function pull() {
     const changed = !same(merged, state);
     state = merged; persistLocal();
     if (!same(merge(empty(), remote), merged)) ls.set(dirtyKey(), true);
-    if (changed) changeListeners.forEach(fn => fn());
+    if (changed) changeListeners.forEach(fn => fn({ remote: true }));
     await flush();
     if (status !== "saving") setStatus("synced");
     return changed;
@@ -174,6 +174,6 @@ export function importLegacy(weeks) {
   const lvl = ls.get("hpg-lvl", null);
   if (lvl && !state.prefs.lvl) { state.prefs.lvl = { v: lvl, ...old }; n++; }
   ls.set("hpg-legacy-imported", true);
-  if (n) touch();
+  if (n) { persistLocal(); ls.set(dirtyKey(), true); clearTimeout(saveTimer); saveTimer = setTimeout(flush, 700); }
   return n;
 }

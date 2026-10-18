@@ -181,7 +181,9 @@ export function loadHTML(st) {
   }
   const W = 320, H = 150, padL = 34, padB = 24, padT = 16, plotH = H - padB - padT;
   const maxV = Math.max(...P.map(p => p.load));
-  const mag = Math.pow(10, Math.floor(Math.log10(maxV))), step = Math.ceil(maxV / 3 / mag) * mag, top = step * 3;
+  // Scala "pulita" (1, 2, 2,5, 5 × 10ⁿ) con al massimo 4 intervalli sopra il picco.
+  const raw = maxV / 4, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw), top = Math.ceil(maxV / step) * step;
   const y = v => padT + plotH - (v / top) * plotH;
   const band = (W - padL) / P.length, bw = Math.min(24, band * 0.56);
   const fmt = v => v >= 1000 ? nf(Math.round(v / 100) / 10) + "K" : nf(v);
@@ -247,7 +249,7 @@ export function insightsHTML(st, weeks) {
   if (optDone) out.push(["up", `Hai aggiunto ${optDone} session${optDone > 1 ? "i" : "e"} facoltativ${optDone > 1 ? "e" : "a"}.`]);
   if (st.streak >= 2) out.push(["up", `${st.streak} settimane di fila con tutti gli obbligatori completati.`]);
   if (!out.length) return "";
-  return `<section class="card glass" aria-label="Analisi"><div class="card-head"><h2>Analisi</h2></div>
+  return `<section class="card glass" aria-label="Analisi"><div class="card-head"><h2>Cosa dicono i dati</h2></div>
     <ul class="insights">${out.slice(0, 4).map(([k, t]) => `<li class="${k}"><i aria-hidden="true"></i><span>${esc(t)}</span></li>`).join("")}</ul></section>`;
 }
 

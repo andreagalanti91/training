@@ -17,7 +17,7 @@ const refresh = new Map(); // refresh -> userId
 const states = new Map();  // userId -> { state, updated_at }
 export const db = { users, states };
 
-const userJSON = u => ({ id: u.id, email: u.email, user_metadata: u.user_metadata, email_confirmed_at: u.confirmed ? new Date().toISOString() : null });
+const userJSON = u => ({ id: u.id, email: u.email, user_metadata: u.user_metadata, email_confirmed_at: u.confirmed ? new Date().toISOString() : null, identities: [{ provider: "email" }] });
 function issue(u) {
   const a = "at_" + randomUUID(), r = "rt_" + randomUUID();
   tokens.set(a, u.id); refresh.set(r, u.id);
@@ -36,7 +36,10 @@ const server = createServer(async (req, res) => {
     const b = await body(req);
     if (!b.email || !b.password) return send(res, 400, { error_code: "validation_failed", msg: "missing" });
     if (b.password.length < 8) return send(res, 422, { error_code: "weak_password", msg: "Password should be at least 8 characters." });
-    if (users.has(b.email)) return send(res, 422, { error_code: "user_already_exists", msg: "User already registered" });
+    // Come Supabase: con la conferma email attiva un'email già registrata non dà errore ma un utente senza identità.
+    if (users.has(b.email)) return CONFIRM && users.get(b.email).confirmed
+      ? send(res, 200, { ...userJSON(users.get(b.email)), id: randomUUID(), identities: [] })
+      : send(res, 422, { error_code: "user_already_exists", msg: "User already registered" });
     const u = { id: randomUUID(), email: b.email, password: b.password, confirmed: !CONFIRM, user_metadata: b.data || {} };
     users.set(b.email, u);
     return send(res, 200, CONFIRM ? userJSON(u) : issue(u));

@@ -159,7 +159,7 @@ function render(opts = {}) {
   const dir = opts.fresh || opts.keep ? "" : idx > lastIdx ? " from-right" : idx < lastIdx ? " from-left" : "";
   lastIdx = idx;
   const y = app.scrollTop;
-  app.innerHTML = `<div class="view${dir}">${id === "home" ? homeView() : sessionView(+id.slice(1) - 1)}</div>`;
+  app.innerHTML = `<div class="view${dir}${opts.keep ? " still" : ""}">${id === "home" ? homeView() : sessionView(+id.slice(1) - 1)}</div>`;
   bind(id);
   syncTabs(id, !opts.fresh);
   fitShell();
@@ -706,8 +706,9 @@ function pickWeek(announce) {
 }
 // Quando arrivano dati dal server (altro dispositivo) aggiorniamo la vista senza perdere il punto.
 let rerenderT;
-store.onChange(() => {
-  if (!appStarted || !weeks.length || openSheet) return;
+store.onChange(e => {
+  // Le modifiche fatte qui aggiornano già la vista: ridisegniamo solo per i dati arrivati dal server.
+  if (!e.remote || !appStarted || !weeks.length || openSheet) return;
   clearTimeout(rerenderT); rerenderT = setTimeout(() => {
     if (document.activeElement?.matches("input, textarea")) return;
     syncTop(); render({ keep: true });
