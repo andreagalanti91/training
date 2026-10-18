@@ -102,10 +102,16 @@ ok(remote?.state?.profile?.name?.v === "Andrea Galanti", "nome salvato nel profi
 await page.click("#profileBtn");
 await page.waitForSelector("#sheetProfile.open");
 ok((await page.textContent("#syncLine")).includes("salvati"), "stato di sincronizzazione nel profilo");
-await page.click("#nameBox summary"); await page.click("#pwBox summary");
+await page.click("#nameBox summary");
 const sticking = await page.evaluate(() => { const m = document.querySelector("#sheetProfile .menu").getBoundingClientRect();
   return [...document.querySelectorAll("#sheetProfile .menu input, #sheetProfile .menu .btn")].filter(e => e.getBoundingClientRect().right > m.right - 8).length; });
 ok(sticking === 0, "nel profilo campi e pulsanti restano dentro il riquadro");
+await page.click("#installBox summary");
+ok(await page.evaluate(() => !document.getElementById("nameBox").open), "una sola sezione del profilo aperta alla volta");
+ok(await page.isVisible('#installBox .steps[data-os="ios"]') && (await page.textContent('#installBox .steps[data-os="ios"]')).includes("Aggiungi alla schermata Home"), "istruzioni per salvare l'app su iPhone");
+await page.click('#installBox .os-seg [data-os="android"]');
+ok(await page.isVisible('#installBox .steps[data-os="android"]') && await page.isHidden('#installBox .steps[data-os="ios"]'), "istruzioni Android al cambio di sistema");
+await shot(page, "07b-installa");
 await shot(page, "07-profile");
 await page.click("#logoutBtn");
 await page.waitForSelector("#auth:not([hidden]) h1");

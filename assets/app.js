@@ -28,7 +28,12 @@ const ICONS = {
   down: '<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>',
   phone: '<rect x="6.5" y="2.5" width="11" height="19" rx="3"/><path d="M11 18.5h2"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
-  pen: '<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/>'
+  pen: '<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/>',
+  share: '<path d="M12 3v12M8 7l4-4 4 4"/><path d="M7 10H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1"/>',
+  addsq: '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/>',
+  dots: '<circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/>',
+  more: '<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>',
+  install: '<rect x="6.5" y="2.5" width="11" height="19" rx="3"/><path d="M12 7v7M9 11l3 3 3-3"/>'
 };
 const svg = (n, w = 1.9) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ICONS.kb}</svg>`;
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -441,10 +446,13 @@ function profileSheet() {
     <p class="sync-line ${s}" id="syncLine"><i></i><span>${STATUS_TXT[s] || ""}</span></p>
     <div class="prof-stats"><div><small>Sessioni</small><b>${st.total}</b></div><div><small>Aderenza</small><b>${st.adherence === null ? "—" : Math.round(st.adherence * 100) + "%"}</b></div><div><small>Serie</small><b>${st.streak}</b></div></div>
     <div class="menu">
-      <details id="nameBox"><summary>${svg("user")}<span>Nome</span></summary><form class="sub-form" id="nameForm">
+      <details id="installBox" name="prof"${installed() ? "" : " open"}><summary>${svg("install")}<span>Salva il sito come app</span></summary><div class="sub-form">${installHTML()}</div></details>
+    </div>
+    <div class="menu">
+      <details id="nameBox" name="prof"><summary>${svg("user")}<span>Nome</span></summary><form class="sub-form" id="nameForm">
         <label class="field"><span>Come ti chiami?</span><input id="nameIn" autocomplete="name" maxlength="40" value="${esc(displayName())}"></label>
         <button class="btn btn-primary btn-block">Salva nome</button></form></details>
-      <details id="pwBox"><summary>${svg("lock")}<span>Cambia password</span></summary><form class="sub-form" id="pwForm">
+      <details id="pwBox" name="prof"><summary>${svg("lock")}<span>Cambia password</span></summary><form class="sub-form" id="pwForm">
         <label class="field pw"><span>Nuova password</span><span class="inp"><input id="pwNew" type="password" autocomplete="new-password" minlength="8" required><button type="button" class="eye" aria-label="Mostra password" aria-pressed="false">${svg("eye")}</button></span></label>
         <p class="err" id="pwErr" hidden></p>
         <button class="btn btn-primary btn-block">Aggiorna password</button></form></details>
@@ -454,6 +462,7 @@ function profileSheet() {
     <div class="menu"><button class="danger" id="logoutBtn">${svg("out")}<span>Esci</span></button></div>
     <p class="version">Hybrid ProGram ${VERSION} · programmazione aggiornata al ${esc(weeks[0]?.publishedAt || "")}</p>`;
   bindEyes(b);
+  bindInstall(b);
   $("nameForm").addEventListener("submit", e => {
     e.preventDefault();
     const n = $("nameIn").value.trim().slice(0, 40);
@@ -488,6 +497,63 @@ store.onStatus(s => {
   const line = $("syncLine");
   if (line) { line.className = "sync-line " + s; line.querySelector("span").textContent = STATUS_TXT[s] || ""; }
 });
+
+/* ---------- Salva il sito come app (istruzioni iPhone / Android) ---------- */
+let installEvt = null;
+// Chrome su Android: teniamo da parte la richiesta di installazione per il pulsante del profilo.
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; });
+window.addEventListener("appinstalled", () => { installEvt = null; toast("App installata: la trovi nella schermata Home"); });
+const UA = navigator.userAgent;
+const IS_IOS = /iP(hone|od|ad)/.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const IS_ANDROID = /Android/i.test(UA);
+const installed = () => root.classList.contains("pwa");
+const ic = n => `<span class="ii">${svg(n, 2)}</span>`;
+const INSTALL_STEPS = {
+  ios: [
+    `Apri <b>training.andreagalanti.it</b> con <b>Safari</b>.`,
+    `Tocca ${ic("share")} <b>Condividi</b> nella barra in basso. Se non lo vedi, tocca prima ${ic("more")} in basso a destra e poi <b>Condividi</b>.`,
+    `Scorri il menu e scegli ${ic("addsq")} <b>Aggiungi alla schermata Home</b> (se non c'è, tocca <b>Mostra altro</b>).`,
+    `Lascia attivo <b>Apri come app web</b> e tocca <b>Aggiungi</b> in alto a destra.`,
+    `Apri <b>Hybrid ProGram</b> dall'icona nella schermata Home e accedi: da lì in poi resti collegato.`
+  ],
+  android: [
+    `Apri <b>training.andreagalanti.it</b> con <b>Chrome</b>.`,
+    `Tocca ${ic("dots")} in alto a destra.`,
+    `Scegli <b>Aggiungi a schermata Home</b> e poi <b>Installa</b> (su alcune versioni la voce si chiama direttamente <b>Installa app</b>).`,
+    `Conferma con <b>Installa</b>: l'icona compare nella schermata Home e tra le app.`,
+    `Con <b>Samsung Internet</b>: tocca ≡ in basso a destra → <b>Aggiungi pagina a</b> → <b>Schermata Home</b>.`
+  ]
+};
+function installHTML() {
+  const os = IS_ANDROID ? "android" : "ios";
+  const steps = k => `<ol class="steps" data-os="${k}"${k === os ? "" : " hidden"}>${INSTALL_STEPS[k].map(s => `<li>${s}</li>`).join("")}</ol>`;
+  return `${installed() ? `<p class="notice good">${svg("check", 2.6)} Stai già usando l'app installata.</p>` : `<p class="help">Aggiungila alla schermata Home: si apre a tutto schermo come un'app, senza barre del browser, e resti sempre collegato.</p>`}
+    <button class="btn btn-primary btn-block" id="installNow" ${installEvt && !installed() ? "" : "hidden"}>${svg("install", 2)} Installa ora</button>
+    <div class="seg os-seg" role="group" aria-label="Sistema"><span class="knob"></span>
+      <button type="button" data-os="ios" aria-pressed="${os === "ios"}">iPhone / iPad</button>
+      <button type="button" data-os="android" aria-pressed="${os === "android"}">Android</button></div>
+    ${steps("ios")}${steps("android")}
+    ${IS_IOS && !/Safari\//.test(UA) || /CriOS|FxiOS|EdgiOS/.test(UA) ? `<p class="hint">Stai usando un browser diverso da Safari: se non trovi la voce, apri il sito in Safari.</p>` : ""}`;
+}
+function bindInstall(scope) {
+  const box = scope.querySelector("#installBox");
+  if (!box) return;
+  const seg = box.querySelector(".os-seg");
+  box.addEventListener("toggle", () => { if (box.open) placeKnob(seg); });
+  if (box.open) requestAnimationFrame(() => placeKnob(seg));
+  seg.querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => {
+    seg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === btn));
+    box.querySelectorAll(".steps").forEach(ol => { ol.hidden = ol.dataset.os !== btn.dataset.os; });
+    placeKnob(seg);
+  }));
+  box.querySelector("#installNow").addEventListener("click", async e => {
+    if (!installEvt) return;
+    installEvt.prompt();
+    const { outcome } = await installEvt.userChoice.catch(() => ({}));
+    if (outcome === "accepted") e.currentTarget.hidden = true;
+    installEvt = null;
+  });
+}
 
 /* ---------- Accesso, registrazione, recupero password ---------- */
 const authEl = $("auth");

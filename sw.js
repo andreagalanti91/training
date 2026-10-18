@@ -1,8 +1,8 @@
 // Hybrid ProGram — cache offline.
 // App e programmazione: prima la rete (aggiornamenti immediati), cache solo se offline.
 // I dati dell'utente (Supabase) non passano mai dalla cache.
-const CACHE = "hpg-v23";
-const ASSETS = ["./", "index.html", "assets/app.css?v=23", "assets/config.js?v=23", "assets/app.js?v=23", "assets/api.js", "assets/store.js", "assets/charts.js",
+const CACHE = "hpg-v24";
+const ASSETS = ["./", "index.html", "assets/app.css?v=24", "assets/config.js?v=24", "assets/app.js?v=24", "assets/api.js", "assets/store.js", "assets/charts.js",
   "manifest.webmanifest", "apple-touch-icon.png", "icon-192.png", "icon-512.png", "data/program.json"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(() => {})); self.skipWaiting(); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(k => Promise.all(k.filter(x => x !== CACHE).map(x => caches.delete(x))))); self.clients.claim(); });

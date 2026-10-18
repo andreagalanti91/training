@@ -56,7 +56,7 @@ Corsa, bici, nuoto, forza e metcon in un'unica web app, con i progressi di ogni 
 | 🏋️ **Schede allenamento** | Una scheda per sessione con zone colorate, livelli (Élite / Scaled / Beginner), carichi Rx e Scaled e confronto con la settimana precedente. |
 | 🧮 **Calcolatori personali** | Passi dalle ripetute, % FTP e % massimali calcolati sui valori dell'atleta, salvati e riproposti ogni settimana. |
 | 📝 **Registro sessione** | Segnando un allenamento come fatto si possono aggiungere giorno, durata ed RPE (facoltativo). |
-| 👤 **Profilo** | In alto a destra: nome, stato della sincronizzazione, cambio password, esportazione dei dati in JSON, uscita. |
+| 👤 **Profilo** | In alto a destra: guida *Salva il sito come app* (iPhone e Android, con installazione diretta su Chrome), nome, stato della sincronizzazione, cambio password, esportazione dei dati in JSON, uscita. |
 | 📱 **App installabile** | Si aggiunge alla schermata Home di iPhone e Android, funziona anche offline e si aggiorna da sola. |
 
 ---
