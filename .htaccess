@@ -1,0 +1,18 @@
+# Hybrid ProGram — impostazioni per hosting Apache.
+AddType application/manifest+json .webmanifest
+AddType application/javascript .js .mjs
+
+<IfModule mod_headers.c>
+  # Pagina, script, service worker e programmazione: sempre la versione più recente.
+  <FilesMatch "\.(html|js|json|webmanifest)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# File di sviluppo che non devono essere pubblici.
+<FilesMatch "^(CLAUDE\.md|README\.md|package\.json|package-lock\.json)$">
+  Require all denied
+</FilesMatch>
+RedirectMatch 404 ^/(scripts|tests|docs|supabase|data/weeks|\.claude|\.github|node_modules)(/|$)

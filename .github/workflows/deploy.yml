@@ -1,0 +1,44 @@
+name: Valida e pubblica
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      FTP_SERVER: ${{ secrets.FTP_SERVER }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Valida la programmazione
+        run: node scripts/build-program.mjs --check
+      - name: data/program.json è aggiornato
+        run: node scripts/build-program.mjs && git diff --exit-code data/program.json
+      - name: Pubblica via FTP
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && env.FTP_SERVER != ''
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.FTP_DIR || './' }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
+            .claude/**
+            docs/**
+            scripts/**
+            supabase/**
+            tests/**
+            data/weeks/**
+            node_modules/**
+            CLAUDE.md
+            README.md
+            package.json

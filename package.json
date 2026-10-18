@@ -1,0 +1,11 @@
+{
+  "name": "hybrid-program",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-program.mjs",
+    "check": "node scripts/build-program.mjs --check",
+    "dev": "node tests/mock-server.mjs 8787",
+    "test": "node scripts/build-program.mjs --check && node tests/run-e2e.mjs"
+  }
+}

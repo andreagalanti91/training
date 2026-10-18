@@ -18,6 +18,7 @@
    ],
    "sessions": [
     {
+     "id": "run",
      "tab": "Run",
      "icon": "run",
      "title": "Ripetute 400",
@@ -57,6 +58,7 @@
      ]
     },
     {
+     "id": "metcon",
      "tab": "Metcon",
      "icon": "kb",
      "title": "Doppio metcon",
@@ -128,6 +130,7 @@
      ]
     },
     {
+     "id": "bike",
      "tab": "Bike",
      "icon": "bike",
      "title": "Bike + long run",
@@ -190,6 +193,7 @@
      ]
     },
     {
+     "id": "forza",
      "tab": "Forza",
      "icon": "bar",
      "title": "Strength",
@@ -273,6 +277,7 @@
      ]
     },
     {
+     "id": "swim",
      "tab": "Swim",
      "icon": "swim",
      "title": "Swim + collinare",
@@ -444,6 +449,7 @@
      ]
     },
     {
+     "id": "row",
      "tab": "Row",
      "icon": "row",
      "title": "Row & ski",
@@ -485,6 +491,7 @@
    ],
    "sessions": [
     {
+     "id": "run",
      "tab": "Run",
      "icon": "run",
      "title": "Threshold run",
@@ -550,6 +557,7 @@
      ]
     },
     {
+     "id": "metcon",
      "tab": "Metcon",
      "icon": "kb",
      "title": "Doppio metcon",
@@ -607,6 +615,7 @@
      ]
     },
     {
+     "id": "bike",
      "tab": "Bike",
      "icon": "bike",
      "title": "Bike + long run",
@@ -669,6 +678,7 @@
      ]
     },
     {
+     "id": "forza",
      "tab": "Forza",
      "icon": "bar",
      "title": "Strength",
@@ -750,6 +760,7 @@
      ]
     },
     {
+     "id": "swim",
      "tab": "Swim",
      "icon": "swim",
      "title": "Swim + collinare",
@@ -921,6 +932,7 @@
      ]
     },
     {
+     "id": "row",
      "tab": "Row",
      "icon": "row",
      "title": "Row & ski",
@@ -962,6 +974,7 @@
    ],
    "sessions": [
     {
+     "id": "run",
      "tab": "Run",
      "icon": "run",
      "title": "Threshold run",
@@ -1037,6 +1050,7 @@
      ]
     },
     {
+     "id": "metcon",
      "tab": "Metcon",
      "icon": "kb",
      "title": "Doppio metcon",
@@ -1102,6 +1116,7 @@
      ]
     },
     {
+     "id": "bike",
      "tab": "Bike",
      "icon": "bike",
      "title": "Bike + long run",
@@ -1178,6 +1193,7 @@
      ]
     },
     {
+     "id": "forza",
      "tab": "Forza",
      "icon": "bar",
      "title": "Strength",
@@ -1265,6 +1281,7 @@
      ]
     },
     {
+     "id": "swim",
      "tab": "Swim",
      "icon": "swim",
      "title": "Swim + collinare",
@@ -1400,6 +1417,7 @@
      ]
     },
     {
+     "id": "row",
      "tab": "Row",
      "icon": "row",
      "title": "Row work",
@@ -1440,6 +1458,7 @@
    ],
    "sessions": [
     {
+     "id": "run",
      "tab": "Run",
      "icon": "run",
      "title": "Threshold run",
@@ -1505,6 +1524,7 @@
      ]
     },
     {
+     "id": "metcon",
      "tab": "Metcon",
      "icon": "kb",
      "title": "Doppio metcon",
@@ -1578,6 +1598,7 @@
      ]
     },
     {
+     "id": "bike",
      "tab": "Bike",
      "icon": "bike",
      "title": "Bike + tempo run",
@@ -1654,6 +1675,7 @@
      ]
     },
     {
+     "id": "forza",
      "tab": "Forza",
      "icon": "bar",
      "title": "Strength",
@@ -1749,6 +1771,7 @@
      ]
     },
     {
+     "id": "swim",
      "tab": "Swim",
      "icon": "swim",
      "title": "Swim work",
@@ -1872,6 +1895,7 @@
      ]
     },
     {
+     "id": "row",
      "tab": "Row",
      "icon": "row",
      "title": "Row work",
@@ -1912,6 +1936,7 @@
    ],
    "sessions": [
     {
+     "id": "run",
      "tab": "Run",
      "icon": "run",
      "title": "Threshold run",
@@ -1976,6 +2001,7 @@
      ]
     },
     {
+     "id": "metcon",
      "tab": "Metcon",
      "icon": "kb",
      "title": "Doppio metcon",
@@ -2049,6 +2075,7 @@
      ]
     },
     {
+     "id": "bike",
      "tab": "Bike",
      "icon": "bike",
      "title": "Bike + tempo run",
@@ -2136,6 +2163,7 @@
      ]
     },
     {
+     "id": "forza",
      "tab": "Forza",
      "icon": "bar",
      "title": "Strength",
@@ -2242,6 +2270,7 @@
      ]
     },
     {
+     "id": "swim",
      "tab": "Swim",
      "icon": "swim",
      "title": "Swim work",
@@ -2349,6 +2378,7 @@
      ]
     },
     {
+     "id": "row",
      "tab": "Row",
      "icon": "row",
      "title": "Row work",
