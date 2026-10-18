@@ -3,6 +3,16 @@
 -- Ogni utente ha una sola riga con il proprio stato (sessioni fatte, calcolatori, preferenze, profilo).
 -- La programmazione NON sta qui: resta in data/program.json, quindi aggiornarla non tocca i dati utente.
 
+-- Se esiste già una tabella user_state creata dal Table Editor (solo id/created_at, senza user_id)
+-- la sostituiamo: non contiene dati dell'app.
+do $$
+begin
+  if exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'user_state')
+     and not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'user_state' and column_name = 'user_id') then
+    drop table public.user_state;
+  end if;
+end $$;
+
 create table if not exists public.user_state (
   user_id    uuid primary key references auth.users (id) on delete cascade,
   state      jsonb not null default '{}'::jsonb,
