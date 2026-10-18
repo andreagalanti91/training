@@ -102,6 +102,10 @@ ok(remote?.state?.profile?.name?.v === "Andrea Galanti", "nome salvato nel profi
 await page.click("#profileBtn");
 await page.waitForSelector("#sheetProfile.open");
 ok((await page.textContent("#syncLine")).includes("salvati"), "stato di sincronizzazione nel profilo");
+await page.click("#nameBox summary"); await page.click("#pwBox summary");
+const sticking = await page.evaluate(() => { const m = document.querySelector("#sheetProfile .menu").getBoundingClientRect();
+  return [...document.querySelectorAll("#sheetProfile .menu input, #sheetProfile .menu .btn")].filter(e => e.getBoundingClientRect().right > m.right - 8).length; });
+ok(sticking === 0, "nel profilo campi e pulsanti restano dentro il riquadro");
 await shot(page, "07-profile");
 await page.click("#logoutBtn");
 await page.waitForSelector("#auth:not([hidden]) h1");
@@ -167,8 +171,8 @@ const p4 = await ctx4.newPage();
 await p4.addInitScript(() => { Object.defineProperty(navigator, "standalone", { get: () => true }); });
 await p4.goto(BASE);
 await p4.waitForSelector("#auth:not([hidden])");
-const h4 = await p4.evaluate(() => document.body.getBoundingClientRect().height);
-ok(h4 === 844, `in modalità app la shell copre tutto lo schermo (${h4}px)`);
+const g4 = await p4.evaluate(() => ({ body: document.body.getBoundingClientRect().height, inner: innerHeight, pwa: document.documentElement.classList.contains("pwa") }));
+ok(g4.pwa && Math.abs(g4.body - g4.inner) < 1, `in modalità app la shell segue la finestra senza uscirne (${g4.body}/${g4.inner})`);
 
 // Progressi della vecchia versione (localStorage) importati nel nuovo account
 const p6 = await (await browser.newContext({ ...devices["iPhone 13"] })).newPage();

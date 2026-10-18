@@ -13,11 +13,16 @@
 }
 html.pwa{--safe-top:max(env(safe-area-inset-top,0px),46px)}
 html{height:100%;-webkit-text-size-adjust:100%;overscroll-behavior:none;background:var(--bg)}
+/* iOS 26, app installata: se la pagina è più corta dello schermo la finestra viene accorciata
+   dell'altezza della status bar (WebKit bug 301108) e sotto la navbar resta una fascia nera.
+   Una pagina alta almeno quanto lo schermo fa tornare la finestra a tutta altezza. */
+@media (display-mode:standalone){html{min-height:min(100lvh,calc(100% + env(safe-area-inset-top,0px)))}}
+html.pwa{min-height:min(100lvh,calc(100% + env(safe-area-inset-top,0px)))}
 [hidden]{display:none!important}
-*,*::before,*::after{box-sizing:inherit}
-/* Shell a tutto schermo. L'altezza arriva da fitShell() (--app-h): in app installata usa l'altezza
-   dello schermo, perché su iOS innerHeight può escludere la fascia sotto la home bar e lasciare un vuoto. */
-body{margin:0;position:fixed;top:0;left:0;right:0;bottom:auto;height:var(--app-h,100%);
+/* border-box esplicito: "inherit" non passa dentro <details> su Safari e i campi uscivano dal riquadro. */
+*,*::before,*::after{box-sizing:border-box}
+/* Shell ancorata ai quattro bordi della finestra: niente altezze calcolate che iOS potrebbe tagliare. */
+body{margin:0;position:fixed;top:0;left:0;right:0;bottom:0;
   display:flex;flex-direction:column;overflow:hidden;
   background:var(--bg);color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter",system-ui,sans-serif;
@@ -198,6 +203,8 @@ table.rt{width:100%;border-collapse:collapse}
   padding:0 10px max(10px,calc(var(--safe-bot) - 12px))}
 /* Con la tastiera aperta il viewport si accorcia: la navbar si nasconde invece di salire. */
 html.kb .tabwrap{display:none}
+/* Con la tastiera aperta la shell segue l'area visibile. */
+html.kb body{bottom:auto;height:var(--app-h,100%)}
 html.auth-on .topbar,html.auth-on main,html.auth-on .tabwrap{display:none}
 .tabbar{pointer-events:auto;max-width:560px;margin:0 auto;border-radius:34px;padding:6px;
   background:linear-gradient(160deg,rgba(40,40,40,.55),rgba(20,20,20,.45));
@@ -399,9 +406,9 @@ textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
 .rpe-grid button{min-height:42px;border-radius:14px;font-weight:800;font-size:16px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
 .rpe-grid button[aria-pressed="true"]{background:var(--accent);color:#fff;box-shadow:none}
 .rpe-desc{font-size:13.5px;color:var(--text-3);margin:8px 0 0;min-height:20px}
-.log-inline{display:flex;align-items:center;gap:10px;margin-top:10px}
+.log-inline{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:10px}
 .log-inline input{width:110px;min-height:44px;border:0;border-radius:14px;padding:0 14px;font-size:17px;font-weight:700;background:rgba(0,0,0,.35);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
-.log-inline input[type="date"]{width:auto;min-width:170px}
+.log-inline input[type="date"]{width:auto;min-width:0;flex:1 1 150px;max-width:220px}
 .log-inline input:focus{outline:2px solid var(--accent);outline-offset:1px}
 .log-inline span{color:var(--text-3);font-size:15px}
 

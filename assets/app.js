@@ -580,24 +580,14 @@ function showAuth(mode = "login", opts = {}) {
 }
 
 /* ---------- Altezza della finestra, tastiera e motion della navbar ---------- */
-function isPWA() { return root.classList.contains("pwa"); }
-const IOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 function fitShell() {
   const vv = window.visualViewport;
   const inner = window.innerHeight, vis = Math.round(vv ? vv.height : inner);
   // La tastiera aperta riduce la finestra: nascondiamo la navbar invece di farla salire.
   const kb = !!vv && inner - vis > 140 && document.activeElement && document.activeElement.matches("input, textarea");
   root.classList.toggle("kb", kb);
-  let h = kb ? vis : inner;
-  if (IOS && isPWA() && !kb) {
-    // App installata su iOS: occupa tutto lo schermo. Se Safari riporta un'altezza un po' più corta
-    // (bug noto, vuoto sotto la navbar) usiamo l'altezza reale dello schermo.
-    // Non su Android, dove lo schermo include anche la barra di navigazione di sistema.
-    const portrait = matchMedia("(orientation: portrait)").matches;
-    const sh = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
-    if (sh > h && sh - h <= 120) h = sh;
-  }
-  root.style.setProperty("--app-h", h + "px");
+  // L'altezza esplicita serve solo con la tastiera aperta; altrimenti la shell è ancorata ai bordi.
+  root.style.setProperty("--app-h", (kb ? vis : inner) + "px");
   const bar = document.querySelector(".tabwrap");
   if (bar && !kb && bar.offsetHeight) root.style.setProperty("--bar-h", Math.round(bar.offsetHeight) + "px");
 }
