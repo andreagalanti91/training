@@ -276,7 +276,7 @@ function blockHTML(b, bi) {
   if (b.loads && b.loads.length) h += `<div class="loads">${b.loads.map(l => `<div class="load"><span class="n">${esc(l.n)}</span><span class="rx"><small>Rx</small>${esc(l.rx)}</span>${l.sc ? `<span class="sc"><small>Scaled</small>${esc(l.sc)}</span>` : ""}</div>`).join("")}</div>`;
   if (b.callout) h += `<div class="callout" style="margin-top:16px;margin-bottom:0">${b.callout}</div>`;
   if (b.calcs) h += b.calcs.map((c, ci) => calcHTML(c, bi, ci)).join("");
-  if (CUR_SESSION) h += scores.barHTML(scores.scoreConf(b), W().number, CUR_SESSION.id, bi);
+  if (CUR_SESSION) h += scores.barHTML(scores.scoreConf(b, CUR_SESSION), W().number, CUR_SESSION.id, bi);
   return h + `</section>`;
 }
 const fmtDay = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d).toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" }); };
@@ -318,7 +318,7 @@ function placeKnob(seg) { const on = seg.querySelector('[aria-pressed="true"]'),
 /* ---------- Score e classifica nelle card allenamento ---------- */
 function scoreCtx(bi) {
   const s = CUR_SESSION, block = s && s.blocks[bi];
-  return block ? { week: W().number, session: s, bi, block, conf: scores.scoreConf(block) } : null;
+  return block ? { week: W().number, session: s, bi, block, conf: scores.scoreConf(block, s) } : null;
 }
 function bindScoreBars() {
   app.querySelectorAll("[data-score]").forEach(b => b.addEventListener("click", () => { const c = scoreCtx(+b.dataset.score); if (c) scores.openScore(c); }));

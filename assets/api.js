@@ -177,9 +177,10 @@ export async function saveState(state) {
 
 /* ---- Score e classifiche (public.scores: tutti leggono, ognuno scrive solo i propri) ---- */
 const q = v => encodeURIComponent(v);
-export const listScores = (week, sessionId, block, lowerBetter) =>
+// Tutti gli score del blocco: ordinamento e divisione per metrica e categoria li fa l'app.
+export const listScores = (week, sessionId, block) =>
   authed(`/rest/v1/scores?week=eq.${week}&session_id=eq.${q(sessionId)}&block=eq.${block}` +
-    `&select=user_id,name,display,value,division,note,updated_at&order=value.${lowerBetter ? "asc" : "desc"},updated_at.asc&limit=300`);
+    `&select=user_id,name,kind,display,value,division,note,updated_at&order=updated_at.asc&limit=500`);
 
 export const myScores = week =>
   authed(`/rest/v1/scores?user_id=eq.${session?.user?.id}&week=eq.${week}&select=session_id,block,kind,value,display,division,note`);

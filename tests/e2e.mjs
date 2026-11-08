@@ -98,19 +98,43 @@ ok(board.length === 2 && board[0].includes("Marco Rossi") && board[1].includes("
 await shot(page, "05b-classifica");
 await page.click("#sheetBoard [data-close]");
 await page.waitForSelector("#sheetBoard:not(.open)");
+// Forza: solo note (nessuna classifica a punteggio)
+await page.click('.tab[data-id="s4"]'); await page.waitForSelector('[data-score="0"]');
+await page.click('[data-score="0"]'); await page.waitForSelector("#sheetScore.open");
+ok(await page.$("#scA") === null && await page.$("#scMet") === null, "Forza: si inseriscono solo le note");
+await page.click("#scForm [type=submit]");
+ok((await page.textContent("#scErr")).includes("nota"), "Forza: nota obbligatoria");
+await page.fill("#scNote", "Back squat 5x5 a 100 kg");
+await page.click("#scForm [type=submit]"); await page.waitForSelector("#sheetScore:not(.open)");
+ok((await page.textContent('[data-score="0"] b')) === "Note inserite", "Forza: nota salvata sulla card");
+await page.click('[data-board="0"]'); await page.waitForSelector("#sheetBoard.open .board li");
+ok((await page.textContent("#sheetBoard .board")).includes("Back squat 5x5"), "Forza: note degli atleti visibili");
+await page.click("#sheetBoard [data-close]"); await page.waitForSelector("#sheetBoard:not(.open)");
+// Corsa: passo medio oppure tempo
+await page.click('.tab[data-id="s1"]'); await page.waitForSelector('[data-score="0"]');
+await page.click('[data-score="0"]'); await page.waitForSelector("#sheetScore.open");
+const runMetrics = await page.$$eval("#scMet button", els => els.map(e => e.textContent));
+ok(runMetrics.join("|") === "Passo medio|Tempo", "Corsa: scelta tra passo medio e tempo");
+await page.fill("#scA", "4"); await page.fill("#scB", "20");
+await page.click("#scForm [type=submit]"); await page.waitForSelector("#sheetScore:not(.open)");
+ok((await page.textContent('[data-score="0"] b')) === "4:20/km", "Corsa: passo medio salvato");
+await page.click('.tab[data-id="s6"]'); await page.waitForSelector('[data-score="0"]');
+await page.click('[data-score="0"]'); await page.waitForSelector("#sheetScore.open");
+ok((await page.$$eval("#scMet button", els => els.map(e => e.textContent))).join("|") === "Media a round|Tempo|Solo note", "Row: media a round, tempo totale o solo note");
+await page.click("#sheetScore [data-close]"); await page.waitForSelector("#sheetScore:not(.open)");
 
 await page.click('.tab[data-id="home"]');
 await page.waitForSelector(".kpis");
-ok((await page.textContent(".nc-prog em")) === "2/5", "contatore della settimana aggiornato");
+ok((await page.textContent(".nc-prog em")) === "3/5", "contatore della settimana aggiornato (lo score segna l'allenamento come fatto)");
 ok((await page.textContent(".next-card h2")).includes("Bike"), "il prossimo allenamento avanza dopo quelli fatti");
 ok(await page.$(".chart svg path") !== null, "grafico attività con colonne");
-ok(await page.$(".hm.l1, .hm.l2") !== null, "calendario con il giorno di allenamento");
+ok(await page.$(".hm.l1, .hm.l2, .hm.l3") !== null, "calendario con il giorno di allenamento");
 ok(await page.$(".load-bar") !== null, "grafico del carico");
 ok(await page.$(".hbars") !== null, "ripartizione per disciplina");
 ok(await page.$(".week .ring") === null, "rimosso il vecchio riepilogo della settimana");
 await page.click(".chart-card >> nth=0 >> .hit >> nth=-1");
 ok(await page.isVisible(".chart-card >> nth=0 >> .tip"), "tooltip al tocco sul grafico");
-ok((await page.textContent(".chart-card >> nth=0 >> .tip")).includes("Settimana 22: 2/5"), "il tooltip descrive la settimana");
+ok((await page.textContent(".chart-card >> nth=0 >> .tip")).includes("Settimana 22: 3/5"), "il tooltip descrive la settimana");
 await shot(page, "05-home-stats");
 await page.evaluate(() => document.getElementById("app").scrollTo(0, 99999));
 await page.waitForTimeout(500);
@@ -120,7 +144,7 @@ await shot(page, "06-home-bottom");
 await page.waitForTimeout(1500);
 const remote = await (await fetch(`${BASE}/__mock/state?email=${encodeURIComponent(email)}`)).json();
 const doneKeys = Object.entries(remote?.state?.done || {}).filter(([, e]) => e.on).map(([k]) => k);
-ok(doneKeys.length === 2, `stato salvato sul server (${doneKeys.join(", ")})`);
+ok(doneKeys.length === 3, `stato salvato sul server (${doneKeys.join(", ")})`);
 ok(remote?.state?.inputs?.p10k?.v === "4:30", "valore del calcolatore salvato sul server");
 ok(remote?.state?.profile?.name?.v === "Andrea Galanti", "nome salvato nel profilo");
 
@@ -159,7 +183,7 @@ await shot(p2, "08-login-error");
 await p2.fill("#aPw", "password-sicura");
 await p2.click("#aForm [type=submit]");
 await p2.waitForSelector(".next-card");
-ok(await p2.locator(".tab.done").count() === 2, "su un altro dispositivo ritrova le sessioni fatte");
+ok(await p2.locator(".tab.done").count() === 3, "su un altro dispositivo ritrova le sessioni fatte");
 
 // Aggiornamento della programmazione: i progressi restano (id stabili)
 await p2.route("**/data/program.json*", async route => {
@@ -170,7 +194,7 @@ await p2.route("**/data/program.json*", async route => {
 await p2.reload();
 await p2.waitForSelector(".next-card");
 const doneTabs = await p2.$$eval(".tab.done span", els => els.map(e => e.textContent));
-ok(doneTabs.length === 2 && doneTabs.includes("Run") && doneTabs.includes("Metcon"), "sessioni riordinate: i progressi seguono la sessione giusta");
+ok(doneTabs.length === 3 && doneTabs.includes("Run") && doneTabs.includes("Forza"), "sessioni riordinate: i progressi seguono la sessione giusta");
 await p2.unroute("**/data/program.json*");
 
 // Sessione revocata: torna all'accesso senza perdere dati

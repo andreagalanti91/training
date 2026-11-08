@@ -24,7 +24,7 @@ Sei l'addetto agli aggiornamenti della programmazione di Hybrid ProGram. Lavori 
      Aggiungi un calcolatore quando il lavoro è espresso in % di FTP/massimale o in offset dal passo.
    - Zone e percentuali nel campo `z`; recuperi in `r`; alternative in `s`; metri del nuoto in `m`.
    - Score: su test, benchmark e metcon For time/AMRAP aggiungi `score` esplicito
-     (es. `{"type": "time", "divisions": ["Rx", "Scaled"]}`); usa `"score": false` per blocchi
+     (es. `{"type": "fortime", "divisions": ["Rx", "Scaled"]}`; tipi in docs/PROGRAM_FORMAT.md); usa `"score": false` per blocchi
      senza risultato da confrontare (riscaldamento, tecnica). Non riordinare i blocchi di una settimana già pubblicata.
    - Simboli: `′` per minuti, `″` per secondi, `×` per le ripetizioni, `–` per gli intervalli (10–12).
    - Se le note del coach sono identiche alla settimana precedente, copiale identiche (l'app le comprime).

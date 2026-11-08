@@ -47,17 +47,24 @@ create table if not exists public.scores (
   week       integer not null,
   session_id text not null,
   block      integer not null default 0,
-  kind       text not null check (kind in ('time','amrap','load','reps','watts','pace','distance')),
-  value      numeric not null,
-  display    text not null check (char_length(display) <= 40),
+  kind       text not null,
+  value      numeric,
+  display    text not null default '' check (char_length(display) <= 40),
   division   text not null default '' check (char_length(division) <= 30),
-  note       text not null default '' check (char_length(note) <= 140),
+  note       text not null default '' check (char_length(note) <= 200),
   name       text not null default '' check (char_length(name) <= 40),
   updated_at timestamptz not null default now(),
   primary key (user_id, week, session_id, block)
 );
 
-create index if not exists scores_board on public.scores (week, session_id, block, value);
+alter table public.scores alter column value drop not null;
+alter table public.scores drop constraint if exists scores_kind_check;
+alter table public.scores add constraint scores_kind_check
+  check (kind in ('time','pace','watts','reps','rounds','split','load','distance','amrap','note'));
+alter table public.scores drop constraint if exists scores_note_check;
+alter table public.scores add constraint scores_note_check check (char_length(note) <= 200);
+
+create index if not exists scores_board on public.scores (week, session_id, block, kind, value);
 
 alter table public.scores enable row level security;
 
@@ -79,3 +86,5 @@ create policy "scores_delete_own" on public.scores
 
 grant select, insert, update, delete on public.scores to authenticated;
 revoke all on public.scores from anon;
+
+notify pgrst, 'reload schema';

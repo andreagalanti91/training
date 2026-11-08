@@ -13,7 +13,9 @@ const CHECK_ONLY = process.argv.includes("--check");
 const ICONS = ["run", "kb", "bike", "bar", "swim", "row", "ski", "gym"];
 const LINE_KEYS = ["pre", "q", "t", "z", "r", "s", "chips", "m"];
 const BLOCK_KEYS = ["title", "badge", "note", "ladder", "table", "lines", "levels", "loads", "callout", "calcs", "score"];
-const SCORE_TYPES = ["time", "pace", "amrap", "load", "reps", "watts", "distance"];
+// Tipi di score accettati (vedi assets/scores.js: PROFILES e sinonimi).
+const SCORE_TYPES = ["run", "bike", "emom", "amrap", "fortime", "strength", "swim", "erg", "load", "distance",
+  "time", "pace", "watts", "reps", "rounds", "notes", "note", "row", "ski"];
 const errors = [];
 const err = (where, msg) => errors.push(`${where}: ${msg}`);
 const isStr = v => typeof v === "string" && v.trim() !== "";

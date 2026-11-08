@@ -79,29 +79,34 @@ Campi tutti facoltativi tranne `title`:
 
 ### Score e classifica (`score`)
 
-Ogni card ha i pulsanti **Score** e **Classifica**. Il tipo di score si indica così:
+Ogni card ha i pulsanti **Score** e **Classifica**. Le note si possono sempre aggiungere.
 
 ```json
-{ "type": "time", "divisions": ["Rx", "Scaled"] }
+{ "type": "fortime", "divisions": ["Rx", "Scaled"] }
 ```
 
-| `type` | Cosa inserisce l'atleta | Vince |
+| `type` | Cosa inserisce l'atleta | Classifica |
 |---|---|---|
-| `time` | tempo (minuti e secondi) | il più basso |
-| `pace` | passo medio al km | il più basso |
-| `amrap` | round + ripetizioni | il più alto |
-| `load` | carico in kg | il più alto |
-| `reps` | ripetizioni (EMOM, max reps) | il più alto |
-| `watts` | potenza media | il più alto |
-| `distance` | metri | il più alto |
+| `run` | passo medio al km **oppure** tempo | per metrica, vince il più basso |
+| `bike` | watt medi **oppure** tempo | watt: il più alto · tempo: il più basso |
+| `emom` | ripetizioni totali | il più alto |
+| `amrap` | round completati | il più alto |
+| `fortime` | tempo | il più basso |
+| `strength` | solo note | elenco delle note, senza punteggio |
+| `swim` | tempo | il più basso |
+| `erg` (row/ski a intervalli) | media a round **oppure** tempo totale **oppure** solo note | per metrica, vince il più basso |
+| `load` / `distance` | kg / metri | il più alto |
+
+Sinonimi accettati: `time` = `fortime`, `pace` = `run`, `watts` = `bike`, `reps` = `emom`,
+`rounds` = `amrap`, `notes` = `strength`, `row`/`ski` = `erg`.
 
 - `divisions` (facoltativo): categorie con classifiche separate, es. `["Rx", "Scaled"]` o
   `["Élite", "Regular", "Beginner"]`. Senza, l'app usa i livelli del blocco (`levels`), oppure
   Rx/Scaled se ci sono carichi scalati, altrimenti una classifica unica.
-- `label` (facoltativo): nome dello score mostrato all'atleta, es. `"Tempo totale"`.
-- Senza `score` il tipo viene dedotto: For time → `time`, AMRAP → `amrap`, EMOM → `reps`,
-  Strength/Bilanciere → `load`, Bike/FTP → `watts`, Run/Corsa → `pace`, altrimenti `time`.
-  Metti sempre `score` esplicito su test e benchmark.
+- `label` (facoltativo): testo d'aiuto mostrato nel modulo score.
+- Senza `score` il tipo viene dedotto da titolo e badge (EMOM, AMRAP, For time, Strength/Bilanciere,
+  Swim/Piscina, Bike/FTP, Row/Ski, Run/Corsa) e, in mancanza, dalla disciplina della sessione.
+  Metti `score` esplicito su test e benchmark; `"score": false` toglie i pulsanti dalla card.
 - Gli score sono legati a `settimana + id sessione + posizione del blocco`: dopo la pubblicazione
   non riordinare i blocchi di una sessione.
 
