@@ -15,6 +15,7 @@ const users = new Map();   // email -> { id, email, password, confirmed, user_me
 const tokens = new Map();  // access -> userId
 const refresh = new Map(); // refresh -> userId
 const states = new Map();  // userId -> { state, updated_at }
+const scores = [];        // righe di public.scores
 export const db = { users, states };
 
 const userJSON = u => ({ id: u.id, email: u.email, user_metadata: u.user_metadata, email_confirmed_at: u.confirmed ? new Date().toISOString() : null, identities: [{ provider: "email" }] });
@@ -73,6 +74,25 @@ const server = createServer(async (req, res) => {
     if (b.user_id !== u.id) return send(res, 403, { message: "new row violates row-level security policy" });
     states.set(u.id, { state: b.state, updated_at: b.updated_at });
     return send(res, 201);
+  }
+  if (p === "/rest/v1/scores") {
+    const u = authUser(req); if (!u) return send(res, 401, { message: "JWT expired" });
+    // Filtri PostgREST "col=eq.valore" e ordinamento "order=value.asc|desc".
+    const filt = r => [...url.searchParams].every(([k, v]) => ["select", "order", "limit", "on_conflict"].includes(k) || !v.startsWith("eq.") || String(r[k]) === decodeURIComponent(v.slice(3)));
+    if (req.method === "GET") {
+      const dir = /value\.desc/.test(url.searchParams.get("order") || "") ? -1 : 1;
+      return send(res, 200, scores.filter(filt).sort((x, y) => dir * (x.value - y.value)));
+    }
+    if (req.method === "POST") {
+      const b = await body(req);
+      if (b.user_id !== u.id) return send(res, 403, { message: "new row violates row-level security policy" });
+      const i = scores.findIndex(r => r.user_id === b.user_id && r.week === b.week && r.session_id === b.session_id && r.block === b.block);
+      if (i >= 0) scores[i] = b; else scores.push(b);
+      return send(res, 201);
+    }
+    const own = r => r.user_id === u.id && filt(r);
+    if (req.method === "DELETE") { for (let i = scores.length - 1; i >= 0; i--) if (own(scores[i])) scores.splice(i, 1); return send(res, 204); }
+    if (req.method === "PATCH") { const b = await body(req); scores.filter(own).forEach(r => Object.assign(r, b)); return send(res, 204); }
   }
   // Helper di test: link di conferma / reset come quelli inviati da Supabase.
   if (p === "/__mock/link") {

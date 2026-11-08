@@ -1,6 +1,7 @@
 import * as api from "./api.js";
 import * as store from "./store.js";
 import * as charts from "./charts.js";
+import * as scores from "./scores.js";
 
 const VERSION = "2.0";
 
@@ -33,6 +34,8 @@ const ICONS = {
   addsq: '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/>',
   dots: '<circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/>',
   more: '<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>',
+  stopwatch: '<circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M10 2.5h4M12 2.5V6M18.5 6.5l1.5-1.5"/>',
+  trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 21h7M9.5 17h5v4h-5z"/>',
   install: '<rect x="6.5" y="2.5" width="11" height="19" rx="3"/><path d="M12 7v7M9 11l3 3 3-3"/>'
 };
 const svg = (n, w = 1.9) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ICONS.kb}</svg>`;
@@ -192,24 +195,28 @@ function homeView() {
   const notes = since
     ? `<details class="notes-same"><summary><span>Invariate dalla settimana ${since}</span>${svg("chev", 2.4)}</summary>${notesBody}</details>`
     : notesBody;
-  const rows = S.map((s, i) => {
-    const d = isDone(i), isNext = i === next && w.number === weeks[0].number;
-    return `
-    <button class="srow glass${d ? " done" : ""}${isNext ? " is-next" : ""}" data-go="s${i + 1}">
-      <span class="ic">${svg(s.icon)}</span>
-      <span class="txt"><span class="t0">Allenamento ${i + 1}${s.optional ? '<span class="opt">facoltativo</span>' : ""}${isNext ? '<span class="next">Prossimo</span>' : ""}</span>
-        <span class="t1">${esc(s.title)}</span><span class="t2">${esc(s.summary)}</span></span>
-      <span class="st" aria-label="${d ? "Completato" : "Da fare"}">${d ? svg("check", 3) : ""}</span>
-    </button>`;
-  }).join("");
+  // Solo il prossimo allenamento: gli altri si aprono dalla navbar.
+  const optLeft = S.findIndex((s, i) => s.optional && !isDone(i));
+  const nextIdx = next !== -1 ? next : optLeft;
+  const nextCard = nextIdx === -1
+    ? `<section class="card glass next-card done" aria-label="Settimana completata"><div class="nc-top"><span class="ic">${svg("check", 2.6)}</span>
+        <div><p class="nc-kicker">Settimana ${w.number}</p><h2>Settimana completata</h2><p class="nc-sum">Tutti gli allenamenti fatti: ottimo lavoro.</p></div></div></section>`
+    : (() => { const s = S[nextIdx], done = S.filter((x, i) => isDone(i)).length;
+        return `<section class="card glass next-card" aria-label="Prossimo allenamento">
+        <div class="nc-top"><span class="ic">${svg(s.icon)}</span><div>
+          <p class="nc-kicker">${next === -1 ? "Obbligatori completati · facoltativo" : "Prossimo allenamento"} · ${nextIdx + 1} di ${S.length}</p>
+          <h2>${esc(s.title)}</h2>${s.summary ? `<p class="nc-sum">${esc(s.summary)}</p>` : ""}</div></div>
+        <div class="nc-foot"><span class="nc-prog" aria-label="${reqDone} obbligatori su ${req} fatti">${S.map((x, i) => `<i class="${isDone(i) ? "on" : ""}${i === nextIdx ? " cur" : ""}${x.optional ? " opt" : ""}"></i>`).join("")}<em>${reqDone}/${req}</em></span>
+          <button class="btn btn-primary" data-go="s${nextIdx + 1}">Inizia ${svg("chev", 2.6).replace("<svg", '<svg class="go"')}</button></div>
+      </section>`; })();
   const st = charts.computeStats(weeks, store.allDone());
   const name = displayName().split(/\s+/)[0];
   return `
     <header class="hero"><p class="kicker">${name ? `Ciao ${esc(name)} · ` : ""}${esc(w.program)}</p><h1>Settimana ${w.number}</h1></header>
+    ${nextCard}
     ${charts.kpiHTML(st)}
     ${charts.activityHTML(st, w.number)}
-    <h2 class="section-title">Allenamenti<span class="count">${reqDone}/${req}</span></h2>${rows}
-    <section class="card glass notes" aria-label="Note del coach" style="margin-top:14px">
+    <section class="card glass notes" aria-label="Note del coach">
       <div class="card-head"><div class="coach-id"><span class="avatar">${svg("whistle", 2)}</span><div><h2>Note del coach</h2><small>Settimana ${w.number}</small></div></div></div>
       ${notes}
     </section>
@@ -269,6 +276,7 @@ function blockHTML(b, bi) {
   if (b.loads && b.loads.length) h += `<div class="loads">${b.loads.map(l => `<div class="load"><span class="n">${esc(l.n)}</span><span class="rx"><small>Rx</small>${esc(l.rx)}</span>${l.sc ? `<span class="sc"><small>Scaled</small>${esc(l.sc)}</span>` : ""}</div>`).join("")}</div>`;
   if (b.callout) h += `<div class="callout" style="margin-top:16px;margin-bottom:0">${b.callout}</div>`;
   if (b.calcs) h += b.calcs.map((c, ci) => calcHTML(c, bi, ci)).join("");
+  if (CUR_SESSION) h += scores.barHTML(scores.scoreConf(b), W().number, CUR_SESSION.id, bi);
   return h + `</section>`;
 }
 const fmtDay = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d).toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" }); };
@@ -278,10 +286,12 @@ function doneHTML(i) {
   return `<button class="done-toggle${e ? " on" : ""}" data-done="${i}" aria-pressed="${!!e}"><span class="box">${svg("check", 3)}</span><span class="lbl">${e ? "Completato" : "Segna come fatto"}</span></button>
     ${e ? `<button class="log-sum" data-log="${i}">${sum || "Aggiungi durata e fatica"} ${svg("pen", 2)}</button>` : ""}`;
 }
+let CUR_SESSION = null;
 function sessionView(i) {
   const s = W().sessions[i];
   if (!s) return homeView();
   PREV_LOAD = buildPrevLoad(W());
+  CUR_SESSION = s;
   return `<header class="hero"><p class="kicker">Allenamento ${i + 1}${s.optional ? ", facoltativo" : ""}</p><h1>${esc(s.title)}</h1>${s.summary ? `<p class="sub">${esc(s.summary)}</p>` : ""}</header>
     ${s.blocks.map(blockHTML).join("")}
     <div class="done-wrap" id="doneWrap">${doneHTML(i)}</div>`;
@@ -305,6 +315,42 @@ function updateCalc(el, c, save) {
 
 /* ---------- Bindings ---------- */
 function placeKnob(seg) { const on = seg.querySelector('[aria-pressed="true"]'), k = seg.querySelector(".knob"); if (on) { k.style.width = on.offsetWidth + "px"; k.style.transform = `translateX(${on.offsetLeft}px)`; } }
+/* ---------- Score e classifica nelle card allenamento ---------- */
+function scoreCtx(bi) {
+  const s = CUR_SESSION, block = s && s.blocks[bi];
+  return block ? { week: W().number, session: s, bi, block, conf: scores.scoreConf(block) } : null;
+}
+function bindScoreBars() {
+  app.querySelectorAll("[data-score]").forEach(b => b.addEventListener("click", () => { const c = scoreCtx(+b.dataset.score); if (c) scores.openScore(c); }));
+  app.querySelectorAll("[data-board]").forEach(b => b.addEventListener("click", () => { const c = scoreCtx(+b.dataset.board); if (c) scores.openBoard(c); }));
+}
+function refreshBars() {
+  if (!CUR_SESSION || current() === "home") return;
+  app.querySelectorAll("[data-scorebar]").forEach(el => {
+    const bi = +el.dataset.scorebar, c = scoreCtx(bi);
+    if (c) el.outerHTML = scores.barHTML(c.conf, c.week, CUR_SESSION.id, bi);
+  });
+  bindScoreBars();
+}
+// Il nome scelto vale per profilo, account e classifiche.
+async function setName(n) {
+  store.setProfile("name", n);
+  syncProfileBtn();
+  await Promise.allSettled([api.updateName(n), api.renameScores(n)]);
+}
+scores.init({
+  $, esc, svg, toast, showSheet: id => showSheet(id), closeSheet: s => closeSheet(s), placeKnob: el => placeKnob(el),
+  displayName: () => displayName(), userId: () => api.currentUser()?.id, setName, refreshBars,
+  levelOf: keys => keys.length ? levelOf(keys) : "",
+  // Uno score inserito vale come allenamento fatto.
+  onSaved: ({ week, session }) => {
+    if (store.isDone(week, session.id)) return;
+    store.setDone(week, session.id, true);
+    const i = W().sessions.indexOf(session);
+    if (i >= 0 && current() === "s" + (i + 1)) { $("doneWrap").innerHTML = doneHTML(i); bindDone(current(), i); syncTabs(current()); }
+  }
+});
+
 function bindDone(id, i) {
   const wrap = $("doneWrap");
   wrap.querySelector("[data-done]").addEventListener("click", () => {
@@ -322,6 +368,8 @@ function bind(id) {
   if (id === "home") { charts.bindCharts(app); return; }
   const i = +id.slice(1) - 1, s = W().sessions[i]; if (!s) return;
   bindDone(id, i);
+  bindScoreBars();
+  scores.loadMine(W().number);
   s.blocks.forEach((b, bi) => {
     (b.calcs || []).forEach((c, ci) => { const el = app.querySelector(`[data-calc="${bi}-${ci}"]`); el.querySelector("input").addEventListener("input", () => updateCalc(el, c, true)); updateCalc(el, c, false); });
     const seg = app.querySelector(`.seg[data-block="${bi}"]`);
@@ -466,7 +514,7 @@ function profileSheet() {
   $("nameForm").addEventListener("submit", e => {
     e.preventDefault();
     const n = $("nameIn").value.trim().slice(0, 40);
-    store.setProfile("name", n); api.updateName(n).catch(() => {});
+    setName(n);
     syncProfileBtn(); profileSheet(); toast("Nome aggiornato");
     if (current() === "home") render({ keep: true });
   });
@@ -487,7 +535,7 @@ function profileSheet() {
   $("diagBtn").addEventListener("click", () => { closeSheet(true); showDiag(); });
   $("logoutBtn").addEventListener("click", async () => {
     await store.flush().catch(() => {});
-    closeSheet(true); store.close(); await api.signOut();
+    closeSheet(true); store.close(); scores.reset(); await api.signOut();
     showAuth("login", { notice: "Sei uscito dal tuo account." });
   });
 }
@@ -642,7 +690,11 @@ function showAuth(mode = "login", opts = {}) {
       fail(x.message);
     } finally { if (document.contains(btn)) { btn.disabled = false; btn.textContent = label; } }
   });
-  setTimeout(() => (authEl.querySelector("input:not([value]), input[value='']") || authEl.querySelector("input"))?.focus({ preventScroll: true }), 60);
+  // Cursore sul primo campo vuoto, ma senza toglierlo da un campo in cui si sta già scrivendo.
+  setTimeout(() => {
+    if (authEl.contains(document.activeElement) && document.activeElement.matches("input")) return;
+    (authEl.querySelector("input:not([value]), input[value='']") || authEl.querySelector("input"))?.focus({ preventScroll: true });
+  }, 60);
 }
 
 /* ---------- Altezza della finestra, tastiera e motion della navbar ---------- */
@@ -733,6 +785,7 @@ async function enterApp() {
   root.classList.remove("auth-on"); authEl.hidden = true; authEl.innerHTML = "";
   appStarted = true;
   store.close();
+  scores.reset();
   const opened = store.open(u.id);
   const pending = cache.get("hpg-pending-name", "");
   if (pending && !store.profile("name")) store.setProfile("name", pending);

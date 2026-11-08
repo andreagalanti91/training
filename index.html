@@ -15,7 +15,7 @@
 <title>Hybrid ProGram</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/app.css?v=24">
+<link rel="stylesheet" href="assets/app.css?v=25">
 <script>
   // Prima del primo disegno: modalità app installata, così l'altezza è giusta da subito.
   if (navigator.standalone === true || matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches)
@@ -49,9 +49,17 @@
   <div class="sheet-head"><h2 id="slT">Com'è andata?</h2><button class="round" data-close aria-label="Chiudi"></button></div>
   <div class="sheet-body" id="logBody"></div>
 </section>
+<section class="sheet" id="sheetScore" role="dialog" aria-modal="true" aria-labelledby="scT" aria-hidden="true" inert>
+  <div class="sheet-head"><h2 id="scT">Il tuo score</h2><button class="round" data-close aria-label="Chiudi"></button></div>
+  <div class="sheet-body" id="scoreBody"></div>
+</section>
+<section class="sheet" id="sheetBoard" role="dialog" aria-modal="true" aria-labelledby="sbT" aria-hidden="true" inert>
+  <div class="sheet-head"><h2 id="sbT">Classifica</h2><button class="round" data-close aria-label="Chiudi"></button></div>
+  <div class="sheet-body" id="boardBody"></div>
+</section>
 <div class="toast glass" id="toast" role="status" aria-live="polite"></div>
 
-<script src="assets/config.js?v=24"></script>
-<script type="module" src="assets/app.js?v=24"></script>
+<script src="assets/config.js?v=25"></script>
+<script type="module" src="assets/app.js?v=25"></script>
 </body>
 </html>

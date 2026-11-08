@@ -63,6 +63,7 @@ Campi tutti facoltativi tranne `title`:
 | `loads` | `[{ "n": "Wall ball", "rx": "9 kg", "sc": "6 kg" }]` |
 | `callout` | Evidenza in fondo al blocco (ammesso `<b>`) |
 | `calcs` | Calcolatori personali (vedi sotto) |
+| `score` | Tipo di score e categorie per la classifica (vedi sotto); `false` per togliere Score e Classifica dalla card |
 
 ### Riga (`lines`, `levels`)
 
@@ -75,6 +76,34 @@ Campi tutti facoltativi tranne `title`:
   Le righe con percentuale mostrano automaticamente il confronto con la settimana precedente
   se esiste una riga con lo stesso `t`.
 - `r`: recupero/dettaglio. `s`: alternativa in grigio. `chips`: chip aggiuntivi. `m`: metri (nuoto).
+
+### Score e classifica (`score`)
+
+Ogni card ha i pulsanti **Score** e **Classifica**. Il tipo di score si indica così:
+
+```json
+{ "type": "time", "divisions": ["Rx", "Scaled"] }
+```
+
+| `type` | Cosa inserisce l'atleta | Vince |
+|---|---|---|
+| `time` | tempo (minuti e secondi) | il più basso |
+| `pace` | passo medio al km | il più basso |
+| `amrap` | round + ripetizioni | il più alto |
+| `load` | carico in kg | il più alto |
+| `reps` | ripetizioni (EMOM, max reps) | il più alto |
+| `watts` | potenza media | il più alto |
+| `distance` | metri | il più alto |
+
+- `divisions` (facoltativo): categorie con classifiche separate, es. `["Rx", "Scaled"]` o
+  `["Élite", "Regular", "Beginner"]`. Senza, l'app usa i livelli del blocco (`levels`), oppure
+  Rx/Scaled se ci sono carichi scalati, altrimenti una classifica unica.
+- `label` (facoltativo): nome dello score mostrato all'atleta, es. `"Tempo totale"`.
+- Senza `score` il tipo viene dedotto: For time → `time`, AMRAP → `amrap`, EMOM → `reps`,
+  Strength/Bilanciere → `load`, Bike/FTP → `watts`, Run/Corsa → `pace`, altrimenti `time`.
+  Metti sempre `score` esplicito su test e benchmark.
+- Gli score sono legati a `settimana + id sessione + posizione del blocco`: dopo la pubblicazione
+  non riordinare i blocchi di una sessione.
 
 ### Calcolatore (`calcs`)
 

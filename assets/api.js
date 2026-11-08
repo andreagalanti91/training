@@ -47,6 +47,7 @@ function translate(status, body) {
   if (code === "email_address_invalid" || m.includes("invalid format") || m.includes("is invalid")) return "Indirizzo email non valido.";
   if (code === "signup_disabled") return "Le registrazioni sono chiuse al momento.";
   if (status === 429 || code === "over_email_send_rate_limit" || code === "over_request_rate_limit") return "Troppi tentativi ravvicinati. Riprova tra qualche minuto.";
+  if (code === "PGRST205" || code === "42P01") return "La classifica non è ancora attiva sul server.";
   if (status >= 500) return "Il server non risponde correttamente. Riprova tra poco.";
   return msg || "Qualcosa è andato storto. Riprova.";
 }
@@ -173,3 +174,26 @@ export async function saveState(state) {
     body: { user_id: uid, state, updated_at: new Date().toISOString() }
   });
 }
+
+/* ---- Score e classifiche (public.scores: tutti leggono, ognuno scrive solo i propri) ---- */
+const q = v => encodeURIComponent(v);
+export const listScores = (week, sessionId, block, lowerBetter) =>
+  authed(`/rest/v1/scores?week=eq.${week}&session_id=eq.${q(sessionId)}&block=eq.${block}` +
+    `&select=user_id,name,display,value,division,note,updated_at&order=value.${lowerBetter ? "asc" : "desc"},updated_at.asc&limit=300`);
+
+export const myScores = week =>
+  authed(`/rest/v1/scores?user_id=eq.${session?.user?.id}&week=eq.${week}&select=session_id,block,kind,value,display,division,note`);
+
+export const saveScore = row =>
+  authed("/rest/v1/scores?on_conflict=user_id,week,session_id,block", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: { ...row, user_id: session?.user?.id, updated_at: new Date().toISOString() }
+  });
+
+export const deleteScore = (week, sessionId, block) =>
+  authed(`/rest/v1/scores?user_id=eq.${session?.user?.id}&week=eq.${week}&session_id=eq.${q(sessionId)}&block=eq.${block}`, { method: "DELETE" });
+
+// Il nome in classifica segue il nome del profilo.
+export const renameScores = name =>
+  authed(`/rest/v1/scores?user_id=eq.${session?.user?.id}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: { name } });

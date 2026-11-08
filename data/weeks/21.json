@@ -1,0 +1,469 @@
+{
+ "program": "Hybrid ProGram E",
+ "number": 21,
+ "notes": [
+  "Da questa settimana metto una seconda opzione nei lavori di forza col bilanciere e nei workout per chi non fa gare di CrossFit durante l'anno. Lo stimolo allenante neurale resta, ma la preparazione si sposta dal weightlifting alla forza lenta di base: squat, stacchi, spinte verticali e orizzontali, tirate.",
+  {
+   "callout": "<b>Consigliata</b> per chi è iscritto alle gare ATHX e/o Hyrox."
+  },
+  "Nei lavori di ginnastica, come sempre, ci saranno le varie scalature per rendere l'allenamento il più personalizzato ed efficace possibile.",
+  {
+   "callout": "<b>Pull-up, T2B e wall walk</b> sono da sempre esercizi presenti negli eventi Steelman.",
+   "neutral": true
+  }
+ ],
+ "sessions": [
+  {
+   "id": "run",
+   "tab": "Run",
+   "icon": "run",
+   "title": "Ripetute 500",
+   "summary": "10×500 m in Z4, le ultime anche in Z5",
+   "blocks": [
+    {
+     "title": "Run work",
+     "badge": "Obbligatorio",
+     "lines": [
+      {
+       "q": "10×",
+       "t": "500 m",
+       "z": "Z4",
+       "r": "1′ rest",
+       "s": "oppure passo 10 km −10/15″ al km. Le ultime 2–3 puoi salire in Z4–Z5"
+      }
+     ],
+     "callout": "<b>Nutrizione:</b> integra 60–80 g di carboidrati all'ora.",
+     "calcs": [
+      {
+       "kind": "pace",
+       "key": "p10k",
+       "label": "Il tuo passo 10 km",
+       "outs": [
+        {
+         "label": "Passo 500 · −10″",
+         "off": -10
+        },
+        {
+         "label": "Passo 500 · −15″",
+         "off": -15
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "metcon",
+   "tab": "Metcon",
+   "icon": "kb",
+   "title": "Doppio metcon",
+   "summary": "AMRAP 12′, poi 3–5 round for time",
+   "blocks": [
+    {
+     "title": "Metcon 1",
+     "badge": "AMRAP 12′",
+     "lines": [
+      {
+       "q": "40",
+       "t": "Double under",
+       "s": "oppure 60 single under"
+      },
+      {
+       "q": "10",
+       "t": "Hang squat snatch",
+       "s": "oppure 2 DB hang power snatch"
+      },
+      {
+       "q": "10",
+       "t": "Chest-to-bar pull-up"
+      }
+     ],
+     "callout": "<b>Obiettivo:</b> 6 round.",
+     "loads": [
+      {
+       "n": "Hang squat snatch",
+       "rx": "40 / 30 kg",
+       "sc": "2 DB 17,5 / 12 kg"
+      }
+     ]
+    },
+    {
+     "title": "Metcon 2",
+     "badge": "3–5 round for time",
+     "lines": [
+      {
+       "q": "12",
+       "t": "Burpees box jump over"
+      },
+      {
+       "q": "12",
+       "t": "Toes to bar"
+      },
+      {
+       "q": "12",
+       "t": "Thruster"
+      },
+      {
+       "q": "100 m",
+       "t": "Sprint"
+      }
+     ],
+     "callout": "<b>Obiettivo:</b> 2′ a round, poi <b>90″ di rest</b>.",
+     "loads": [
+      {
+       "n": "Thruster",
+       "rx": "40 / 30 kg"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bike",
+   "tab": "Bike",
+   "icon": "bike",
+   "title": "Bike + corsa",
+   "summary": "10×5′ all'80–85% FTP, poi 7–10 km in Z2",
+   "blocks": [
+    {
+     "title": "Bike work",
+     "badge": "FTP",
+     "lines": [
+      {
+       "q": "10′",
+       "t": "Warm up"
+      },
+      {
+       "q": "10×",
+       "t": "5′ all'80–85% FTP",
+       "z": "Z3–Z4",
+       "r": "1′ rest in Z2 al 50% FTP"
+      },
+      {
+       "q": "20–30′",
+       "t": "Cool down"
+      }
+     ],
+     "callout": "<b>Nutrizione:</b> integra 60–80 g di carboidrati all'ora.",
+     "calcs": [
+      {
+       "kind": "pct",
+       "key": "ftp",
+       "label": "La tua FTP",
+       "unit": "W",
+       "outs": [
+        {
+         "label": "Lavoro 80%",
+         "pct": 80
+        },
+        {
+         "label": "Lavoro 85%",
+         "pct": 85
+        },
+        {
+         "label": "Recupero 50%",
+         "pct": 50
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "title": "Run work",
+     "badge": "Facoltativo",
+     "lines": [
+      {
+       "q": "7–10 km",
+       "t": "Corsa continua",
+       "z": "Z2"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "forza",
+   "tab": "Forza",
+   "icon": "bar",
+   "title": "Strength",
+   "summary": "Bench e back squat 1×2 al 90%, affondi, poi 3 round for time",
+   "blocks": [
+    {
+     "title": "Strength",
+     "badge": "Bilanciere",
+     "lines": [
+      {
+       "pre": "A",
+       "q": "1×2",
+       "t": "Bench press",
+       "z": "90%"
+      },
+      {
+       "pre": "B",
+       "q": "1×2",
+       "t": "Back squat",
+       "z": "90%"
+      },
+      {
+       "pre": "C",
+       "q": "3×10",
+       "t": "Reverse lunges alternati",
+       "s": "bilanciere in back squat, al 40% dell'1RM di back squat"
+      }
+     ],
+     "callout": "<b>Se hai gare di CrossFit:</b> fai snatch e clean &amp; jerk, mantenendo serie e percentuali.",
+     "calcs": [
+      {
+       "kind": "pct",
+       "key": "rm-bench-press",
+       "label": "1RM bench press",
+       "unit": "kg",
+       "outs": [
+        {
+         "label": "90%",
+         "pct": 90
+        }
+       ]
+      },
+      {
+       "kind": "pct",
+       "key": "rm-back-squat",
+       "label": "1RM back squat",
+       "unit": "kg",
+       "outs": [
+        {
+         "label": "Squat 90%",
+         "pct": 90
+        },
+        {
+         "label": "Affondi 40%",
+         "pct": 40
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "title": "Metcon",
+     "badge": "3 round for time",
+     "lines": [
+      {
+       "q": "10 m",
+       "t": "Sled pull"
+      },
+      {
+       "q": "30",
+       "t": "Thruster con bilanciere scarico"
+      },
+      {
+       "q": "50 m",
+       "t": "Burpees broad jump"
+      },
+      {
+       "q": "100 m",
+       "t": "Farmer carry"
+      }
+     ],
+     "callout": "<b>Obiettivo:</b> 16′.",
+     "loads": [
+      {
+       "n": "Sled pull",
+       "rx": "150 / 100 kg"
+      },
+      {
+       "n": "Thruster, bilanciere scarico",
+       "rx": "20 / 15 kg"
+      },
+      {
+       "n": "Farmer carry",
+       "rx": "32 / 24 kg"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "swim",
+   "tab": "Swim",
+   "icon": "swim",
+   "title": "Swim + corsa",
+   "summary": "Tre livelli in piscina, poi corsa facoltativa con finale sopra soglia",
+   "blocks": [
+    {
+     "title": "Swim work",
+     "badge": "Piscina",
+     "note": "Nuota i 50 m misti così: primo 50 una vasca delfino e una dorso, secondo 50 una vasca rana e una stile libero.",
+     "levels": {
+      "Élite": [
+       {
+        "pre": "A",
+        "q": "400 m",
+        "t": "Riscaldamento",
+        "m": 400
+       },
+       {
+        "pre": "B",
+        "q": "8×50",
+        "t": "Misti",
+        "r": "30″ rest",
+        "m": 400
+       },
+       {
+        "pre": "C",
+        "q": "4×300",
+        "t": "Stile libero",
+        "z": "Z2–Z3",
+        "r": "25″ rest",
+        "m": 1200
+       },
+       {
+        "pre": "D",
+        "q": "4×150",
+        "t": "Con palette",
+        "z": "Z2",
+        "r": "30″ rest",
+        "m": 600
+       },
+       {
+        "pre": "E",
+        "q": "8×50",
+        "t": "Gambe stile libero",
+        "r": "25″ rest",
+        "m": 400
+       }
+      ],
+      "Regular": [
+       {
+        "pre": "A",
+        "q": "200 m",
+        "t": "Riscaldamento",
+        "m": 200
+       },
+       {
+        "pre": "B",
+        "q": "4×50",
+        "t": "Misti",
+        "r": "30″ rest",
+        "m": 200
+       },
+       {
+        "pre": "C",
+        "q": "4×250",
+        "t": "Stile libero",
+        "z": "Z2–Z3",
+        "r": "25″ rest",
+        "m": 1000
+       },
+       {
+        "pre": "D",
+        "q": "3×150",
+        "t": "Con palette",
+        "z": "Z2",
+        "r": "30″ rest",
+        "m": 450
+       },
+       {
+        "pre": "E",
+        "q": "8×50",
+        "t": "Gambe stile libero",
+        "r": "25″ rest",
+        "m": 400
+       }
+      ],
+      "Beginner": [
+       {
+        "pre": "A",
+        "q": "200 m",
+        "t": "Riscaldamento",
+        "m": 200
+       },
+       {
+        "pre": "B",
+        "q": "8×50",
+        "t": "Misti",
+        "r": "30″ rest",
+        "m": 400
+       },
+       {
+        "pre": "C",
+        "q": "4×150",
+        "t": "Stile libero",
+        "z": "Z2–Z3",
+        "r": "25″ rest",
+        "m": 600
+       },
+       {
+        "pre": "D",
+        "q": "4×75",
+        "t": "Con palette",
+        "z": "Z2",
+        "r": "30″ rest",
+        "m": 300
+       },
+       {
+        "pre": "E",
+        "q": "8×25",
+        "t": "Gambe stile libero",
+        "r": "25″ rest",
+        "m": 200
+       }
+      ]
+     }
+    },
+    {
+     "title": "Run work",
+     "badge": "Facoltativo",
+     "lines": [
+      {
+       "q": "7–8 km",
+       "t": "Corsa continua",
+       "z": "Z2"
+      },
+      {
+       "q": "2 km",
+       "t": "Sopra soglia",
+       "z": "Z4–Z5",
+       "s": "subito dopo, senza pausa"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "row",
+   "tab": "Row",
+   "icon": "row",
+   "title": "Ski & row",
+   "summary": "10–12×500 m ski, poi 4–6×1000 m row",
+   "optional": true,
+   "blocks": [
+    {
+     "title": "Ski work",
+     "badge": "Facoltativo",
+     "lines": [
+      {
+       "q": "10–12×",
+       "t": "500 m",
+       "z": "Z2–Z3",
+       "r": "1′ rest"
+      }
+     ]
+    },
+    {
+     "title": "Row work",
+     "badge": "Facoltativo",
+     "lines": [
+      {
+       "q": "4–6×",
+       "t": "1000 m",
+       "z": "Z3–Z4",
+       "r": "1′ rest"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "publishedAt": "2026-11-01"
+}

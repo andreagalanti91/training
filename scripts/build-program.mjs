@@ -12,7 +12,8 @@ const CHECK_ONLY = process.argv.includes("--check");
 
 const ICONS = ["run", "kb", "bike", "bar", "swim", "row", "ski", "gym"];
 const LINE_KEYS = ["pre", "q", "t", "z", "r", "s", "chips", "m"];
-const BLOCK_KEYS = ["title", "badge", "note", "ladder", "table", "lines", "levels", "loads", "callout", "calcs"];
+const BLOCK_KEYS = ["title", "badge", "note", "ladder", "table", "lines", "levels", "loads", "callout", "calcs", "score"];
+const SCORE_TYPES = ["time", "pace", "amrap", "load", "reps", "watts", "distance"];
 const errors = [];
 const err = (where, msg) => errors.push(`${where}: ${msg}`);
 const isStr = v => typeof v === "string" && v.trim() !== "";
@@ -40,6 +41,15 @@ function checkBlock(b, where) {
   if (b.ladder && (!Array.isArray(b.ladder) || !b.ladder.every(n => typeof n === "number" || isStr(n)))) err(where, "'ladder' deve essere un array di numeri");
   if (b.table && (!Array.isArray(b.table.cols) || !Array.isArray(b.table.rows) || b.table.rows.some(r => !Array.isArray(r) || r.length !== b.table.cols.length)))
     err(where, "'table' deve avere cols e rows della stessa lunghezza");
+  if (b.score !== undefined && b.score !== false) {
+    const sc = b.score;
+    if (!sc || typeof sc !== "object" || Array.isArray(sc)) err(where, "'score' deve essere un oggetto { type, divisions } oppure false");
+    else {
+      if (!SCORE_TYPES.includes(sc.type)) err(where, `score.type '${sc.type}' non valido (${SCORE_TYPES.join(", ")})`);
+      if (sc.divisions !== undefined && (!Array.isArray(sc.divisions) || !sc.divisions.every(isStr))) err(where, "score.divisions deve essere un array di nomi (es. [\"Rx\", \"Scaled\"])");
+      for (const k of Object.keys(sc)) if (!["type", "divisions", "label"].includes(k)) err(where, `chiave sconosciuta in score: '${k}'`);
+    }
+  }
   (b.loads || []).forEach((l, i) => { if (!isStr(l.n) || !isStr(l.rx)) err(`${where} carico ${i + 1}`, "servono 'n' e 'rx'"); });
   (b.calcs || []).forEach((c, i) => {
     const w = `${where} calcolatore ${i + 1}`;

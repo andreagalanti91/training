@@ -52,9 +52,10 @@ Corsa, bici, nuoto, forza e metcon in un'unica web app, con i progressi di ogni 
 |---|---|
 | 🔐 **Account con email** | Registrazione e accesso solo con email e password. Conferma via email, recupero password, cambio password dal profilo. |
 | 💾 **Progressi al sicuro** | Sessioni fatte, durata, fatica (RPE), valori dei calcolatori e preferenze sono salvati nell'account. Restano identici quando si aggiorna l'app o la programmazione e si ritrovano su ogni dispositivo. |
-| 📊 **Home con analisi** | Aderenza agli obbligatori, settimane complete di fila, sessioni e ore totali, grafico attività per disciplina, calendario degli allenamenti, carico settimanale (durata × RPE), ripartizione per disciplina e analisi scritte automatiche. |
+| 📊 **Home con analisi** | Il prossimo allenamento in evidenza con il pulsante *Inizia*, poi aderenza agli obbligatori, settimane complete di fila, sessioni e ore totali, grafico attività per disciplina, calendario degli allenamenti, carico settimanale (durata × RPE), ripartizione per disciplina e analisi scritte automatiche. |
 | 🏋️ **Schede allenamento** | Una scheda per sessione con zone colorate, livelli (Élite / Scaled / Beginner), carichi Rx e Scaled e confronto con la settimana precedente. |
 | 🧮 **Calcolatori personali** | Passi dalle ripetute, % FTP e % massimali calcolati sui valori dell'atleta, salvati e riproposti ogni settimana. |
+| 🏆 **Score e classifiche** | In ogni card allenamento: *Score* per inserire il proprio risultato (tempo, round + ripetizioni, kg, passo, watt…) e *Classifica* per confrontarlo con gli altri atleti, divisa per categoria (Rx/Scaled, Élite/Regular/Beginner). |
 | 📝 **Registro sessione** | Segnando un allenamento come fatto si possono aggiungere giorno, durata ed RPE (facoltativo). |
 | 👤 **Profilo** | In alto a destra: guida *Salva il sito come app* (iPhone e Android, con installazione diretta su Chrome), nome, stato della sincronizzazione, cambio password, esportazione dei dati in JSON, uscita. |
 | 📱 **App installabile** | Si aggiunge alla schermata Home di iPhone e Android, funziona anche offline e si aggiorna da sola. |

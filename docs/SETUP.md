@@ -8,7 +8,8 @@ i progressi degli atleti.
 ## 1. Crea il progetto Supabase (una volta, ~10 minuti)
 
 1. Vai su <https://supabase.com>, crea un account e un nuovo progetto (regione: Europe).
-2. **SQL Editor → New query**: incolla il contenuto di `supabase/schema.sql` e premi **Run**.
+2. **SQL Editor → New query**: incolla il contenuto di `supabase/schema.sql` e premi **Run**
+   (crea `user_state` e `scores`; se hai già `user_state`, basta eseguire `supabase/scores.sql`).
 3. **Authentication → Sign In / Providers**:
    - lascia attivo solo **Email** (disattiva gli altri provider);
    - **Confirm email**: attivo (consigliato). Se lo disattivi, l'utente entra subito dopo la registrazione.

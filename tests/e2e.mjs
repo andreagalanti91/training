@@ -54,7 +54,8 @@ ok(geo.gap >= 8 && geo.gap <= 40, `navbar in basso (distanza dal fondo ${Math.ro
 ok(geo.pbRight < 24, "pulsante profilo allineato a destra");
 
 // Segna come fatta la prima sessione e registra durata + RPE
-await page.click(".srow[data-go=s1]");
+ok(await page.$(".srow") === null && (await page.textContent(".next-card h2")).length > 0, "in home solo il prossimo allenamento");
+await page.click(".next-card [data-go]");
 await page.waitForSelector("[data-done]");
 await page.fill(".calc input", "4:30");
 await page.click("[data-done]");
@@ -74,9 +75,34 @@ await page.click("[data-done]");
 await page.waitForSelector("#sheetLog.open");
 await page.click("#logBody [data-skip]");
 
+// Score e classifica sulla card "Bologna TD test" (score a tempo, categorie Élite/Regular/Beginner)
+ok(await page.locator(".score-bar").count() === 2, "pulsanti Score e Classifica in ogni card allenamento");
+await page.click('[data-score="0"]');
+await page.waitForSelector("#sheetScore.open");
+ok(await page.locator("#scDiv button").count() === 3, "categorie del test nel modulo score");
+await page.fill("#scA", "12"); await page.fill("#scB", "75");
+await page.click("#scForm [type=submit]");
+ok((await page.textContent("#scErr")).includes("secondi"), "rifiuta secondi non validi");
+await page.fill("#scB", "34");
+await page.click("#scForm [type=submit]");
+await page.waitForSelector("#sheetScore:not(.open)");
+ok((await page.textContent('[data-score="0"] b')) === "12:34", "il mio score compare sulla card");
+// un altro atleta inserisce uno score migliore nella stessa categoria
+const other = await (await fetch(`${BASE}/auth/v1/signup`, { method: "POST", headers: { apikey: "x", "Content-Type": "application/json" }, body: JSON.stringify({ email: "rivale" + email, password: "password-sicura" }) })).json();
+await fetch(`${BASE}/rest/v1/scores?on_conflict=user_id,week,session_id,block`, { method: "POST", headers: { apikey: "x", "Content-Type": "application/json", Authorization: `Bearer ${other.access_token}` },
+  body: JSON.stringify({ user_id: other.user.id, week: 22, session_id: "metcon", block: 0, kind: "time", value: 710, display: "11:50", division: "Élite", note: "", name: "Marco Rossi" }) });
+await page.click('[data-board="0"]');
+await page.waitForSelector("#sheetBoard.open .board li");
+const board = await page.$$eval("#sheetBoard .board li", els => els.map(e => e.innerText.replace(/\s+/g, " ")));
+ok(board.length === 2 && board[0].includes("Marco Rossi") && board[1].includes("12:34") && board[1].includes("tu"), "classifica condivisa ordinata (vince il tempo più basso)");
+await shot(page, "05b-classifica");
+await page.click("#sheetBoard [data-close]");
+await page.waitForSelector("#sheetBoard:not(.open)");
+
 await page.click('.tab[data-id="home"]');
 await page.waitForSelector(".kpis");
-ok((await page.textContent(".section-title .count")) === "2/5", "contatore della settimana aggiornato");
+ok((await page.textContent(".nc-prog em")) === "2/5", "contatore della settimana aggiornato");
+ok((await page.textContent(".next-card h2")).includes("Bike"), "il prossimo allenamento avanza dopo quelli fatti");
 ok(await page.$(".chart svg path") !== null, "grafico attività con colonne");
 ok(await page.$(".hm.l1, .hm.l2") !== null, "calendario con il giorno di allenamento");
 ok(await page.$(".load-bar") !== null, "grafico del carico");
@@ -84,7 +110,7 @@ ok(await page.$(".hbars") !== null, "ripartizione per disciplina");
 ok(await page.$(".week .ring") === null, "rimosso il vecchio riepilogo della settimana");
 await page.click(".chart-card >> nth=0 >> .hit >> nth=-1");
 ok(await page.isVisible(".chart-card >> nth=0 >> .tip"), "tooltip al tocco sul grafico");
-ok((await page.textContent(".chart-card >> nth=0 >> .tip")).includes("Settimana 19: 2/5"), "il tooltip descrive la settimana");
+ok((await page.textContent(".chart-card >> nth=0 >> .tip")).includes("Settimana 22: 2/5"), "il tooltip descrive la settimana");
 await shot(page, "05-home-stats");
 await page.evaluate(() => document.getElementById("app").scrollTo(0, 99999));
 await page.waitForTimeout(500);
@@ -132,8 +158,8 @@ ok((await p2.textContent("#aErr")).includes("non corretti"), "errore con passwor
 await shot(p2, "08-login-error");
 await p2.fill("#aPw", "password-sicura");
 await p2.click("#aForm [type=submit]");
-await p2.waitForSelector(".srow");
-ok(await p2.locator(".srow.done").count() === 2, "su un altro dispositivo ritrova le sessioni fatte");
+await p2.waitForSelector(".next-card");
+ok(await p2.locator(".tab.done").count() === 2, "su un altro dispositivo ritrova le sessioni fatte");
 
 // Aggiornamento della programmazione: i progressi restano (id stabili)
 await p2.route("**/data/program.json*", async route => {
@@ -142,9 +168,9 @@ await p2.route("**/data/program.json*", async route => {
   route.fulfill({ response: r, json: j });
 });
 await p2.reload();
-await p2.waitForSelector(".srow");
-const doneTitles = await p2.$$eval(".srow.done .t1", els => els.map(e => e.textContent));
-ok(doneTitles.length === 2 && doneTitles.includes("Ripetute 400"), "sessioni riordinate: i progressi seguono la sessione giusta");
+await p2.waitForSelector(".next-card");
+const doneTabs = await p2.$$eval(".tab.done span", els => els.map(e => e.textContent));
+ok(doneTabs.length === 2 && doneTabs.includes("Run") && doneTabs.includes("Metcon"), "sessioni riordinate: i progressi seguono la sessione giusta");
 await p2.unroute("**/data/program.json*");
 
 // Sessione revocata: torna all'accesso senza perdere dati
@@ -164,7 +190,7 @@ await p3.waitForSelector("#auth h1");
 ok(await p3.textContent("#auth h1") === "Nuova password", "il link di recupero apre il form nuova password");
 await p3.fill("#aPw", "nuova-password");
 await p3.click("#aForm [type=submit]");
-await p3.waitForSelector(".srow");
+await p3.waitForSelector(".next-card");
 ok(!(await p3.evaluate(() => location.hash.includes("access_token"))), "token rimossi dall'indirizzo");
 const p5 = await (await browser.newContext({ ...devices["iPhone 13"] })).newPage();
 await p5.goto(BASE + "/#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid");
@@ -184,11 +210,11 @@ ok(g4.pwa && Math.abs(g4.body - g4.inner) < 1, `in modalità app la shell segue 
 const p6 = await (await browser.newContext({ ...devices["iPhone 13"] })).newPage();
 await p6.goto(BASE);
 await p6.waitForSelector("#auth:not([hidden])");
-await p6.evaluate(() => { localStorage.setItem("hpg-w19-done", "[0,2]"); localStorage.setItem("hpg-ftp", '"250"'); });
+await p6.evaluate(() => { localStorage.setItem("hpg-w22-done", "[0,2]"); localStorage.setItem("hpg-ftp", '"250"'); });
 await p6.fill("#aEmail", "legacy" + email); await p6.fill("#aPw", "password-sicura"); await p6.click("#aForm [type=submit]");
-await p6.waitForSelector(".srow");
-ok(await p6.locator(".srow.done").count() === 2, "spunte della vecchia versione importate nell'account");
-await p6.click(".srow[data-go=s3]");
+await p6.waitForSelector(".next-card");
+ok(await p6.locator(".tab.done").count() === 2, "spunte della vecchia versione importate nell'account");
+await p6.click('.tab[data-id="s3"]');
 ok(await p6.inputValue(".calc input >> nth=0") === "250", "valori dei calcolatori importati");
 
 ok(errors.length === 0, "nessun errore JavaScript" + (errors.length ? ": " + errors.join(" | ") : ""));
