@@ -21,7 +21,11 @@ PWA statica (italiano) pubblicata su https://training.andreagalanti.it. Nessun b
 Quando l'utente incolla la programmazione di una nuova settimana (o una correzione):
 1. Delega **sempre** al subagent `program-updater` passandogli il testo integrale dell'utente.
    Non leggere tu `data/program.json` o i file delle settimane: serve a risparmiare token.
-2. Controlla solo il riepilogo del subagent e `git diff --stat`; esegui `npm run check`.
+   Salva prima il testo in un file nello scratchpad e passa il percorso (stessa copia per tutti gli agenti).
+2. Verifica indipendente (accuratezza 100%): un secondo agente (general-purpose, model sonnet, sola lettura)
+   confronta testo e `data/weeks/<N>.json` voce per voce e risponde "NESSUNA DISCREPANZA" o l'elenco.
+   Se trova discrepanze, rimandale al `program-updater` e ripeti la verifica.
+   Controlla solo i riepiloghi degli agenti e `git diff --stat`; esegui `npm run check`.
 3. Commit (`Programmazione: settimana N`) e push sul branch di lavoro. Riferisci all'utente il riepilogo in poche righe.
 
 ## Modifiche al codice
