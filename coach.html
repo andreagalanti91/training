@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#000000">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Coach · Hybrid ProGram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css?v=28">
+<link rel="stylesheet" href="assets/coach.css?v=28">
+</head>
+<body class="coach">
+<div class="ambient" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i></div>
+
+<aside class="c-side glass" aria-label="Settimane">
+  <div class="c-brand"><img src="icon-192.png" alt="" width="32" height="32"><div><b>Hybrid ProGram</b><small>Dashboard coach</small></div></div>
+  <button class="btn btn-primary btn-block" id="newWeek" type="button">+ Nuova settimana</button>
+  <p class="c-label">Settimane</p>
+  <nav class="c-weeks" id="weekList"></nav>
+  <div class="c-side-foot">
+    <a href="index.html" class="c-link">← Torna all'app</a>
+    <small id="whoami"></small>
+  </div>
+</aside>
+
+<main class="c-main" id="main">
+  <div class="loading"><span class="spin"></span>Carico…</div>
+</main>
+
+<div class="toast glass" id="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/config.js?v=28"></script>
+<script type="module" src="assets/coach.js?v=28"></script>
+</body>
+</html>

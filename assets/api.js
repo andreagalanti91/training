@@ -98,12 +98,28 @@ export const sendPasswordReset = email =>
   request(`/auth/v1/recover?redirect_to=${redirectTo()}`, { method: "POST", body: { email } });
 
 let refreshing = null;
+// Un'altra scheda (o l'anteprima della dashboard coach) può aver già rinnovato la sessione: la riusiamo.
+function adoptStored() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SESSION_KEY));
+    if (s?.access_token && session && s.user?.id === session.user?.id && s.expires_at > session.expires_at) session = s;
+  } catch (e) {}
+}
 async function refresh() {
+  const before = session?.access_token;
+  adoptStored();
+  if (session && session.access_token !== before && session.expires_at - 60 > Date.now() / 1000) return session;
   if (!session?.refresh_token) throw new ApiError("Sessione scaduta.", { status: 401 });
   // Un solo rinnovo alla volta: Supabase ruota il refresh token a ogni uso.
   refreshing ||= request("/auth/v1/token?grant_type=refresh_token", { method: "POST", body: { refresh_token: session.refresh_token } })
     .then(d => { saveSession(fromTokenResponse(d)); return session; })
-    .catch(e => { if (e.status === 400 || e.status === 401 || e.status === 403) saveSession(null); throw e; })
+    .catch(e => {
+      // Rinnovo già fatto da un'altra scheda con lo stesso token: usiamo la sua sessione invece di uscire.
+      const prev = session; adoptStored();
+      if (session !== prev) return session;
+      if (e.status === 400 || e.status === 401 || e.status === 403) saveSession(null);
+      throw e;
+    })
     .finally(() => { refreshing = null; });
   return refreshing;
 }
@@ -111,6 +127,7 @@ async function refresh() {
 async function authed(path, opts = {}) {
   if (!session) throw new ApiError("Non hai effettuato l'accesso.", { status: 401 });
   if (session.expires_at - 60 < Date.now() / 1000) await refresh();
+  else adoptStored();
   try { return await request(path, { ...opts, token: session.access_token }); }
   catch (e) {
     if (e.status !== 401) throw e;
@@ -198,3 +215,33 @@ export const deleteScore = (week, sessionId, block) =>
 // Il nome in classifica segue il nome del profilo.
 export const renameScores = name =>
   authed(`/rest/v1/scores?user_id=eq.${session?.user?.id}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: { name } });
+
+/* ---- Programmazione dal database (public.program_weeks) ---- */
+// Settimane pubblicate visibili all'atleta (RLS: il coach vede anche bozze e programmate).
+export const publishedWeeks = () =>
+  authed(`/rest/v1/program_weeks?status=eq.published&or=(publish_at.is.null,publish_at.lte.${q(new Date().toISOString())})&select=number,data&order=number.desc`);
+
+export async function isCoach() {
+  try { return (await authed("/rest/v1/rpc/is_coach", { method: "POST", body: {} })) === true; }
+  catch (e) { return false; }
+}
+
+/* ---- Solo coach ---- */
+export const coachWeeks = () =>
+  authed("/rest/v1/program_weeks?select=number,data,status,publish_at,source_text,updated_at&order=number.desc");
+
+export const coachSaveWeek = row =>
+  authed("/rest/v1/program_weeks?on_conflict=number", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: row
+  });
+
+export const coachDeleteWeek = number =>
+  authed(`/rest/v1/program_weeks?number=eq.${+number}&status=eq.draft`, { method: "DELETE", headers: { Prefer: "return=representation" } });
+
+export const coachHistory = number =>
+  authed(`/rest/v1/program_history?number=eq.${+number}&select=id,data,status,publish_at,source_text,saved_at&order=saved_at.desc&limit=30`);
+
+// Conversione del testo con l'IA (funzione program-ai su Supabase, la chiave resta sul server).
+export const coachAI = payload => authed("/functions/v1/program-ai", { method: "POST", body: payload });

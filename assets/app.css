@@ -570,3 +570,12 @@ textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
   .home-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:start}
   .home-grid .col-b>.section-title:first-child{margin-top:0}
 }
+
+/* Link alla dashboard coach nella sidebar (solo desktop) e anteprima dentro la dashboard */
+.side-coach{display:none}
+@media (min-width:1024px){
+  .side-coach:not([hidden]){display:flex;align-items:center;gap:8px;margin:0 2px;padding:10px 12px;border-radius:14px;font-size:13.5px;font-weight:700;
+    color:var(--accent);text-decoration:none;background:rgba(255,122,26,.1);box-shadow:inset 0 0 0 1px rgba(255,122,26,.3)}
+  .side-coach:hover{background:rgba(255,122,26,.18)}
+}
+html.preview [data-done],html.preview .score-bar,html.preview #profileBtn{pointer-events:none;opacity:.55}

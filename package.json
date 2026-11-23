@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build-program.mjs",
-    "check": "node scripts/build-program.mjs --check",
+    "check": "node scripts/build-program.mjs --check && node scripts/build-ai-prompt.mjs --check",
     "dev": "node tests/mock-server.mjs 8787",
-    "test": "node scripts/build-program.mjs --check && node tests/run-e2e.mjs"
+    "test": "npm run -s check && node tests/run-e2e.mjs"
   }
 }

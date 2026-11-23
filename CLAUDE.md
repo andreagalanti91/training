@@ -9,6 +9,10 @@ PWA statica (italiano) pubblicata su https://training.andreagalanti.it. Nessun b
   `config.js` (URL e anon key di Supabase).
 - Programmazione: sorgenti in `data/weeks/<N>.json` → `node scripts/build-program.mjs` genera `data/program.json`.
   Formato in `docs/PROGRAM_FORMAT.md`. Setup account/pubblicazione in `docs/SETUP.md`.
+- Dashboard coach (`coach.html`, `assets/coach.js`, guida `docs/COACH.md`): il coach pubblica le settimane
+  in `public.program_weeks` (`supabase/program.sql`). L'app unisce `program.json` e il database:
+  **a parità di numero vince il database**. IA: Edge Function `supabase/functions/program-ai` (Gemini gratuito).
+  Dopo modifiche a `docs/PROGRAM_FORMAT.md` o `docs/AI_RULES.md` esegui `node scripts/build-ai-prompt.mjs`.
 - Dati utente: Supabase (`supabase/schema.sql`), chiave per sessione `"<settimana>:<id sessione>"`.
   Classifiche: `public.scores` (`supabase/scores.sql`), una riga per atleta/settimana/sessione/blocco.
 - Il sito si pubblica **solo** da questo repository (push → GitHub Actions → FTP): file caricati a mano
@@ -19,6 +23,8 @@ PWA statica (italiano) pubblicata su https://training.andreagalanti.it. Nessun b
 ## Aggiornamento settimanale della programmazione
 
 Quando l'utente incolla la programmazione di una nuova settimana (o una correzione):
+0. Se il coach usa la dashboard non serve fare niente qui. Prima di scrivere una settimana a mano controlla
+   che non esista già nel database (`select number, status from public.program_weeks`): lì vincerebbe quella.
 1. Delega **sempre** al subagent `program-updater` passandogli il testo integrale dell'utente.
    Non leggere tu `data/program.json` o i file delle settimane: serve a risparmiare token.
    Salva prima il testo in un file nello scratchpad e passa il percorso (stessa copia per tutti gli agenti).

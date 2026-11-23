@@ -241,6 +241,62 @@ ok(await p6.locator(".tab.done").count() === 2, "spunte della vecchia versione i
 await p6.click('.tab[data-id="s3"]');
 ok(await p6.inputValue(".calc input >> nth=0") === "250", "valori dei calcolatori importati");
 
+// Desktop: sidebar a sinistra e scorciatoie da tastiera
+const pd = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+pd.on("pageerror", e => errors.push(e.message));
+await pd.goto(BASE); await pd.waitForSelector("#auth:not([hidden])");
+await pd.fill("#aEmail", "desk" + email); await pd.fill("#aPw", "password-sicura"); await pd.click("#aForm [type=submit]");
+await pd.waitForSelector(".next-card");
+const side = await pd.evaluate(() => { const r = document.querySelector(".tabbar").getBoundingClientRect(); return { x: r.left, h: r.height, wb: !!document.querySelector("#sideHead #weekBtn") }; });
+ok(side.x < 40 && side.h > 700 && side.wb, "desktop: sidebar a sinistra con la scelta della settimana");
+await pd.keyboard.press("ArrowRight");
+await pd.waitForFunction(() => location.hash === "#s1");
+ok(true, "desktop: la freccia destra apre l'allenamento successivo");
+ok(await pd.locator("#sideCoach").isHidden(), "atleta: nessun link alla dashboard coach");
+
+// Dashboard coach: imposta con IA, controlla, pubblica; l'atleta vede la settimana
+const coachEmail = "coach" + email;
+const pc = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+pc.on("pageerror", e => errors.push(e.message));
+pc.on("dialog", d => d.accept());
+await pc.goto(BASE); await pc.waitForSelector("#auth:not([hidden])");
+await pc.fill("#aEmail", coachEmail); await pc.fill("#aPw", "password-sicura"); await pc.click("#aForm [type=submit]");
+await pc.waitForSelector(".next-card");
+await pc.goto(BASE + "/coach.html");
+await pc.waitForSelector(".c-empty");
+ok((await pc.textContent(".c-empty")).includes("non è abilitato"), "coach non abilitato: accesso negato");
+await fetch(`${BASE}/__mock/coach?email=${encodeURIComponent(coachEmail)}`);
+await pc.reload();
+await pc.waitForSelector("#wText");
+ok(await pc.locator(".c-week").count() === 8, "dashboard: elenco delle settimane (file)");
+await pc.click("#newWeek");
+ok(await pc.inputValue("#wNum") === "23", "nuova settimana con il numero successivo");
+await pc.fill("#wText", "Allenamento 1\n-run work\n10x400mt @ 1' rest");
+await pc.click("#aiBtn");
+await pc.waitForSelector(".c-checks li.ask");
+ok(await pc.locator(".c-checks li.ok").count() >= 1, "dashboard: formato valido dopo l'IA");
+await pc.waitForSelector(".c-sub >> text=Verifica");
+ok(await pc.locator(".c-checks li.warn >> text=recupero").count() === 1, "dashboard: verifica testo ↔ settimana mostrata");
+const fr = pc.frameLocator(".phone iframe");
+await fr.locator(".next-card").waitFor();
+ok((await fr.locator("h1").first().textContent()).includes("23"), "anteprima: l'app mostra la bozza");
+await pc.fill("#fixIn", "Recupero corretto a 2′");
+await pc.click("#fixBtn");
+await pc.waitForSelector("#busy[hidden]", { state: "attached" });
+await pc.waitForFunction(() => JSON.parse(localStorage.getItem("hpg-preview")).sessions[0].summary === "Recupero corretto a 2′");
+ok(true, "correzione a parole applicata");
+await fr.locator(".nc-sum >> text=Recupero corretto").waitFor();
+ok(true, "anteprima aggiornata dopo la correzione");
+await pc.click("#pubBtn");
+await pc.waitForSelector(".c-week >> text=Settimana 23");
+ok(await pc.locator(".c-week .chip.pub").count() === 1, "settimana pubblicata dalla dashboard");
+await pd.goto(BASE + "/#home"); await pd.reload();
+await pd.waitForSelector(".next-card");
+ok((await pd.textContent("h1")).includes("23"), "l'atleta vede la settimana pubblicata dal coach");
+await pc.goto(BASE + "/index.html");
+await pc.waitForSelector(".next-card");
+ok(await pc.locator("#sideCoach").isVisible(), "coach: link alla dashboard nella sidebar");
+
 ok(errors.length === 0, "nessun errore JavaScript" + (errors.length ? ": " + errors.join(" | ") : ""));
 await browser.close();
 console.log(failures ? `\n${failures} controlli falliti` : "\nTutti i controlli superati");

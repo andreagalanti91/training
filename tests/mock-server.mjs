@@ -17,6 +17,9 @@ const tokens = new Map();  // access -> userId
 const refresh = new Map(); // refresh -> userId
 const states = new Map();  // userId -> { state, updated_at }
 const scores = [];        // righe di public.scores
+const coaches = new Set(); // user_id dei coach
+const program = new Map(); // number -> riga di public.program_weeks
+const history = [];        // public.program_history
 export const db = { users, states };
 
 const userJSON = u => ({ id: u.id, email: u.email, user_metadata: u.user_metadata, email_confirmed_at: u.confirmed ? new Date().toISOString() : null, identities: [{ provider: "email" }] });
@@ -95,6 +98,47 @@ const server = createServer(async (req, res) => {
     if (req.method === "DELETE") { for (let i = scores.length - 1; i >= 0; i--) if (own(scores[i])) scores.splice(i, 1); return send(res, 204); }
     if (req.method === "PATCH") { const b = await body(req); scores.filter(own).forEach(r => Object.assign(r, b)); return send(res, 204); }
   }
+  // Programmazione gestita dal coach (public.coaches, public.program_weeks, funzione program-ai).
+  if (p === "/rest/v1/rpc/is_coach") { const u = authUser(req); if (!u) return send(res, 401, { message: "JWT expired" }); return send(res, 200, coaches.has(u.id)); }
+  if (p === "/rest/v1/program_weeks") {
+    const u = authUser(req); if (!u) return send(res, 401, { message: "JWT expired" });
+    const coach = coaches.has(u.id), now = new Date();
+    const visible = r => coach || (r.status === "published" && (!r.publish_at || new Date(r.publish_at) <= now));
+    const eq = (k, r) => { const v = url.searchParams.get(k); return !v || !v.startsWith("eq.") || String(r[k]) === v.slice(3); };
+    const match = r => visible(r) && eq("number", r) && eq("status", r);
+    if (req.method === "GET") return send(res, 200, [...program.values()].filter(match).sort((a, b) => b.number - a.number));
+    if (!coach) return send(res, 403, { message: "new row violates row-level security policy" });
+    if (req.method === "POST") {
+      const b = await body(req), old = program.get(b.number);
+      if (old) history.push({ id: history.length + 1, ...old, saved_at: new Date().toISOString() });
+      const row = { number: b.number, data: b.data, status: b.status || "draft", publish_at: b.publish_at || null, source_text: b.source_text || "", updated_at: new Date().toISOString() };
+      program.set(b.number, row);
+      return send(res, 201, [row]);
+    }
+    if (req.method === "DELETE") { const gone = [...program.values()].filter(r => match(r) && r.status === "draft"); gone.forEach(r => program.delete(r.number)); return send(res, 200, gone); }
+  }
+  if (p === "/rest/v1/program_history") {
+    const u = authUser(req); if (!u || !coaches.has(u.id)) return send(res, 200, []);
+    const n = +(url.searchParams.get("number") || "").replace("eq.", "");
+    return send(res, 200, history.filter(h => h.number === n).reverse());
+  }
+  if (p === "/functions/v1/program-ai") {
+    const u = authUser(req); if (!u || !coaches.has(u.id)) return send(res, 403, { message: "Questo account non è abilitato come coach." });
+    const b = await body(req);
+    if (/verificatore/.test(b.system)) return send(res, 200, { json: { discrepanze: ["Esempio: nel testo il recupero è 2′, nella settimana 1′30″."] } });
+    const fixAsk = /Correzione richiesta dal coach: (.*)/.exec(b.user);
+    if (fixAsk) {
+      const w = JSON.parse(/Settimana attuale in JSON[^\n]*\n(.*)/.exec(b.user)[1]);
+      w.sessions[0].summary = fixAsk[1];
+      return send(res, 200, { json: { week: w, dubbi: [] } });
+    }
+    // IA finta: restituisce la settimana 22 con il numero richiesto.
+    const w = JSON.parse(await readFile(join(ROOT, "data", "weeks", "22.json"), "utf8"));
+    w.number = +/Settimana numero: (\d+)/.exec(b.user)[1];
+    return send(res, 200, { json: { week: w, dubbi: ["Esempio di dubbio: il testo cita un “day 4” che non esiste."] } });
+  }
+  if (p === "/__mock/coach") { const u = users.get(url.searchParams.get("email")); if (u) coaches.add(u.id); return send(res, 200, { ok: !!u }); }
+
   // Helper di test: link di conferma / reset come quelli inviati da Supabase.
   if (p === "/__mock/link") {
     const u = users.get(url.searchParams.get("email")); if (!u) return send(res, 404, {});

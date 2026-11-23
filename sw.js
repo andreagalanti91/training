@@ -1,8 +1,8 @@
 // Hybrid ProGram — cache offline.
 // App e programmazione: prima la rete (aggiornamenti immediati), cache solo se offline.
 // I dati dell'utente (Supabase) non passano mai dalla cache.
-const CACHE = "hpg-v27";
-const ASSETS = ["./", "index.html", "assets/app.css?v=27", "assets/config.js?v=27", "assets/app.js?v=27", "assets/api.js", "assets/store.js", "assets/charts.js", "assets/scores.js",
+const CACHE = "hpg-v28";
+const ASSETS = ["./", "index.html", "assets/app.css?v=28", "assets/config.js?v=28", "assets/app.js?v=28", "assets/api.js", "assets/store.js", "assets/charts.js", "assets/scores.js",
   "manifest.webmanifest", "apple-touch-icon.png", "icon-192.png", "icon-512.png", "data/program.json"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(() => {})); self.skipWaiting(); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(k => Promise.all(k.filter(x => x !== CACHE).map(x => caches.delete(x))))); self.clients.claim(); });
@@ -11,7 +11,8 @@ self.addEventListener("fetch", e => {
   const url = new URL(r.url);
   if (url.origin === self.location.origin) {
     // La programmazione si chiede con ?t=… per saltare la cache HTTP: in cache la teniamo senza query.
-    const key = r.mode === "navigate" ? "index.html" : url.pathname.endsWith("/data/program.json") ? "data/program.json" : r;
+    const page = r.mode === "navigate" && /\/(index\.html)?$/.test(url.pathname);
+    const key = page ? "index.html" : url.pathname.endsWith("/data/program.json") ? "data/program.json" : r;
     e.respondWith(fetch(r).then(res => {
       if (res.ok) { const cl = res.clone(); caches.open(CACHE).then(c => c.put(key, cl)); }
       return res;

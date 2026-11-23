@@ -79,16 +79,36 @@ async function fetchDB() {
     await new Promise(res => setTimeout(res, 1200));
   }
 }
+// Programmazione = data/program.json + settimane pubblicate dal coach su Supabase (a parità di numero vince il database).
 async function loadDB() {
+  const fromDb = api.publishedWeeks().then(r => (Array.isArray(r) ? r : null)).catch(() => null);
+  let file = null, fileErr = null;
   try {
-    const db = await fetchDB();
-    if (!db || !Array.isArray(db.weeks)) throw new Error("formato");
-    cache.set("hpg-db-cache", db); return { db, offline: false };
-  } catch (e) {
-    const db = cache.get("hpg-db-cache", null);
-    if (db) return { db, offline: true };
-    throw e;
-  }
+    file = await fetchDB();
+    if (!file || !Array.isArray(file.weeks)) throw new Error("formato");
+    cache.set("hpg-file-cache", file);
+  } catch (e) { fileErr = e; file = cache.get("hpg-file-cache", null) || cache.get("hpg-db-cache", null); }
+  let rows = await fromDb;
+  const dbOk = !!rows;
+  if (dbOk) cache.set("hpg-dbweeks-cache", rows); else rows = cache.get("hpg-dbweeks-cache", []);
+  if (!file && !rows.length) throw fileErr || new Error("empty");
+  const byNum = new Map((file?.weeks || []).map(w => [w.number, w]));
+  rows.forEach(r => { if (r && r.data && r.data.sessions) byNum.set(r.number, { ...r.data, number: r.number }); });
+  const db = { ...(file || {}), weeks: [...byNum.values()] };
+  cache.set("hpg-db-cache", db);
+  return { db, offline: !!fileErr && !dbOk };
+}
+
+/* ---------- Anteprima per la dashboard coach (index.html?preview) ---------- */
+const PREVIEW = new URLSearchParams(location.search).has("preview");
+if (PREVIEW) root.classList.add("preview");
+function applyPreview() {
+  const w = cache.get("hpg-preview", null);
+  if (!w || !w.sessions || !w.number) return false;
+  weeks = weeks.filter(x => x.number !== w.number);
+  weeks.push(normalizeWeeks([JSON.parse(JSON.stringify(w))])[0]); sortWeeks();
+  curNum = w.number;
+  return true;
 }
 
 /* ---------- Toast ---------- */
@@ -531,6 +551,7 @@ function profileSheet() {
   b.innerHTML = `<div class="prof-head"><span class="ini">${esc(initials())}</span><div><b>${esc(displayName() || "Atleta")}</b><small>${esc(u.email || "")}</small></div></div>
     <p class="sync-line ${s}" id="syncLine"><i></i><span>${STATUS_TXT[s] || ""}</span></p>
     <div class="prof-stats"><div><small>Sessioni</small><b>${st.total}</b></div><div><small>Aderenza</small><b>${st.adherence === null ? "—" : Math.round(st.adherence * 100) + "%"}</b></div><div><small>Serie</small><b>${st.streak}</b></div></div>
+    ${COACH ? `<div class="menu"><button id="coachBtn">${svg("whistle")}<span>Dashboard coach</span></button></div>` : ""}
     <div class="menu">
       <details id="installBox" name="prof"${installed() ? "" : " open"}><summary>${svg("install")}<span>Salva il sito come app</span></summary><div class="sub-form">${installHTML()}</div></details>
     </div>
@@ -549,6 +570,7 @@ function profileSheet() {
     <p class="version">Hybrid ProGram ${VERSION} · programmazione aggiornata al ${esc(weeks[0]?.publishedAt || "")}</p>`;
   bindEyes(b);
   bindInstall(b);
+  $("coachBtn")?.addEventListener("click", () => { location.href = "coach.html"; });
   $("nameForm").addEventListener("submit", e => {
     e.preventDefault();
     const n = $("nameIn").value.trim().slice(0, 40);
@@ -816,7 +838,13 @@ document.addEventListener("focusout", () => setTimeout(fitShell, 120));
 fitShell();
 
 /* ---------- Avvio ---------- */
-let appStarted = false;
+let appStarted = false, COACH = false;
+// Il link alla dashboard compare solo agli account abilitati come coach.
+function checkCoach() {
+  COACH = false; $("sideCoach").hidden = true;
+  if (PREVIEW) return;
+  api.isCoach().then(ok => { COACH = ok; $("sideCoach").hidden = !ok; });
+}
 async function enterApp() {
   const u = api.currentUser();
   if (!u) return showAuth("login");
@@ -825,6 +853,7 @@ async function enterApp() {
   store.close();
   scores.reset();
   const opened = store.open(u.id);
+  checkCoach();
   const pending = cache.get("hpg-pending-name", "");
   if (pending && !store.profile("name")) store.setProfile("name", pending);
   try { localStorage.removeItem("hpg-pending-name"); } catch (e) {}
@@ -835,7 +864,7 @@ async function enterApp() {
     if (!weeks.length) throw new Error("empty");
     await Promise.race([opened, new Promise(r => setTimeout(r, 2500))]);
     if (store.importLegacy(weeks)) toast("Ho importato i progressi salvati su questo dispositivo");
-    pickWeek(true);
+    if (!(PREVIEW && applyPreview())) pickWeek(true);
     buildTabs(); syncTop(); render({ fresh: true });
     if (offline) setTimeout(() => toast("Offline: mostro l'ultima versione salvata"), 400);
   } catch (e) {
@@ -891,7 +920,16 @@ document.addEventListener("visibilitychange", () => {
 });
 window.addEventListener("online", () => { if (appStarted) store.flush(); });
 window.addEventListener("pagehide", () => store.flush());
+// La dashboard aggiorna la bozza: l'anteprima si ridisegna restando sulla stessa scheda.
+if (PREVIEW) window.addEventListener("storage", e => {
+  if (e.key !== "hpg-preview" || !appStarted || !weeks.length) return;
+  const here = current();
+  if (!applyPreview()) return;
+  buildTabs(); syncTop();
+  if (TABS.some(t => t.id === here)) render({ keep: true }); else go("home");
+});
 async function refreshSilently() {
+  if (PREVIEW) return;
   try {
     const { db, offline } = await loadDB(); if (offline) return;
     const nw = normalizeWeeks(db.weeks).sort((a, b) => b.number - a.number);

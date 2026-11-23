@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: 22
       - name: Valida la programmazione
-        run: node scripts/build-program.mjs --check
+        run: node scripts/build-program.mjs --check && node scripts/build-ai-prompt.mjs --check
       - name: data/program.json è aggiornato
         run: node scripts/build-program.mjs && git diff --exit-code data/program.json
 
@@ -49,7 +49,7 @@ jobs:
         if: steps.dir.outputs.path != ''
         run: |
           mkdir -p dist
-          cp -r index.html sw.js manifest.webmanifest .htaccess apple-touch-icon.png icon-192.png icon-512.png assets dist/
+          cp -r index.html coach.html sw.js manifest.webmanifest .htaccess apple-touch-icon.png icon-192.png icon-512.png assets dist/
           mkdir -p dist/data && cp data/program.json dist/data/
 
       - name: Pubblica via FTP

@@ -78,3 +78,8 @@ Il repository è pubblico: le credenziali vanno **solo** nei secret, mai nei fil
 npm test          # valida la programmazione + test end-to-end (Playwright) su un Supabase simulato
 npm run dev       # app + Supabase simulato su http://localhost:8787
 ```
+
+## Dashboard coach
+
+Tabelle e funzione IA: esegui `supabase/program.sql` e segui `docs/COACH.md`
+(chiave gratuita Gemini come secret `GEMINI_API_KEY`, abilitazione del coach).

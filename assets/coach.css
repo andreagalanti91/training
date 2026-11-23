@@ -1,0 +1,84 @@
+/* Dashboard coach: stessa grafica dell'app, layout da desktop. */
+body.coach{position:static;display:block;min-height:100vh;overflow:auto;padding-left:296px}
+.c-side{position:fixed;left:16px;top:16px;bottom:16px;width:264px;z-index:5;border-radius:30px;padding:16px 12px;
+  display:flex;flex-direction:column;gap:12px;background:linear-gradient(160deg,rgba(40,40,40,.55),rgba(20,20,20,.45))}
+.c-brand{display:flex;align-items:center;gap:10px;padding:2px 6px 4px}
+.c-brand img{border-radius:9px;box-shadow:0 4px 14px rgba(255,106,0,.35)}
+.c-brand b{display:block;font-size:15.5px}.c-brand small{display:block;font-size:12px;color:var(--accent);font-weight:700}
+.c-label{margin:6px 8px 0;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.c-weeks{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.c-week{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border-radius:14px;color:var(--text-2)}
+.c-week:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.c-week[aria-current="true"]{background:rgba(255,255,255,.12);color:var(--text);box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+.c-week b{flex:1;font-size:14.5px}
+.c-side-foot{border-top:1px solid var(--hair);padding:12px 8px 0;display:flex;flex-direction:column;gap:6px}
+.c-link{color:var(--text-2);text-decoration:none;font-size:14px;font-weight:600}.c-link:hover{color:var(--text)}
+.c-side-foot small{color:var(--text-3);font-size:12px;overflow:hidden;text-overflow:ellipsis}
+
+.chip{flex:none;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;background:rgba(255,255,255,.08);color:var(--text-2)}
+.chip.pub{background:rgba(79,209,197,.14);color:var(--z2)}
+.chip.draft{background:rgba(246,195,67,.14);color:var(--z3)}
+.chip.sched{background:rgba(255,122,26,.16);color:var(--accent-soft)}
+.chip.file{background:rgba(255,255,255,.08);color:var(--text-3)}
+
+.c-main{position:relative;z-index:1;max-width:1500px;padding:28px 32px 60px}
+.c-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.c-head h1{display:flex;align-items:center;gap:12px;font-size:38px}
+.c-head .kicker{margin:0 0 4px}
+.c-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn-sm{min-height:40px;padding:0 16px;font-size:14.5px}
+.btn-ghost.danger{color:#FF8A7A}
+.c-grid{display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:24px;align-items:start}
+.c-col{min-width:0;display:flex;flex-direction:column;gap:16px}
+.c-card{border-radius:26px;padding:18px 20px}
+.c-card h2{margin:0;font-size:18px}
+.c-card .card-head{margin-bottom:12px}
+.c-card .help{margin:4px 0 12px;font-size:14px}
+.c-row{display:flex;gap:12px;flex-wrap:wrap}
+.c-row .field{flex:1 1 150px;margin-bottom:12px}
+.field input[type="date"],.field input[type="datetime-local"],.field input[type="number"]{color-scheme:dark}
+.c-text{min-height:380px;font-size:15px}
+.c-json{min-height:520px;font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+.c-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.c-btns .grow{flex:1}
+.c-busy{display:inline-flex;align-items:center;gap:10px;color:var(--text-2);font-size:14px}
+.c-busy .spin{width:18px;height:18px;border-width:2px}
+
+.c-checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.c-checks li{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:14px;font-size:14px;line-height:1.4;background:rgba(255,255,255,.05)}
+.c-checks li::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;margin-top:6px;background:var(--text-3)}
+.c-checks li.err{background:rgba(255,77,77,.1)}.c-checks li.err::before{background:var(--z5)}
+.c-checks li.warn{background:rgba(246,195,67,.09)}.c-checks li.warn::before{background:var(--z3)}
+.c-checks li.ok{background:rgba(79,209,197,.08)}.c-checks li.ok::before{background:var(--z2)}
+.c-checks li.ask::before{background:var(--accent)}
+.c-sub{margin:14px 0 6px;font-size:13px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
+.c-fix{display:flex;gap:10px;margin-top:12px}
+.c-fix input{flex:1;min-height:46px;border:0;border-radius:14px;padding:0 14px;font-size:15px;background:rgba(0,0,0,.35);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+.c-fix input:focus{outline:2px solid var(--accent);outline-offset:1px}
+
+.c-prev{position:sticky;top:20px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.c-seg{display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.06)}
+.c-seg button{padding:7px 14px;border-radius:999px;font-size:13.5px;font-weight:700;color:var(--text-2)}
+.c-seg button[aria-pressed="true"]{background:rgba(255,255,255,.16);color:var(--text)}
+.phone{width:390px;height:780px;max-height:calc(100vh - 110px);border-radius:46px;padding:10px;background:#111;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.14),0 30px 60px rgba(0,0,0,.6)}
+.phone iframe{width:100%;height:100%;border:0;border-radius:37px;background:#000}
+.c-empty{display:grid;place-items:center;min-height:70vh;text-align:center;color:var(--text-2)}
+.c-empty .card{max-width:460px}
+.c-hist{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow:auto}
+.c-hist button{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:13.5px;text-align:left}
+.c-hist button:hover{background:rgba(255,255,255,.1)}
+details.c-more>summary{cursor:pointer;color:var(--text-2);font-size:14px;font-weight:600;list-style:none}
+details.c-more>summary::-webkit-details-marker{display:none}
+details.c-more[open]>summary{margin-bottom:10px}
+.toast{position:fixed;bottom:28px;left:calc(50% + 148px)}
+
+@media (max-width:1180px){.c-grid{grid-template-columns:minmax(0,1fr)}.c-prev{position:static}}
+@media (max-width:860px){
+  body.coach{padding-left:0}
+  .c-side{position:static;width:auto;margin:12px;max-height:none}
+  .c-weeks{max-height:220px}
+  .c-main{padding:12px 16px 60px}
+  .phone{width:100%;max-width:390px}
+  .toast{left:50%}
+}
