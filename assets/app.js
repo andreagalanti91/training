@@ -287,27 +287,11 @@ function homeView() {
 
 /* ---------- Session ---------- */
 const zoneClass = z => /%/.test(z) ? "pct" : /Z2\s*[–\-\/]\s*Z?3/i.test(z) ? "z23" : /Z2/i.test(z) ? "z2" : /Z3/i.test(z) ? "z3" : /Z4/i.test(z) ? "z4" : /Z5/i.test(z) ? "z5" : "pct";
-// Carichi a percentuale della settimana precedente, per mostrare la progressione.
-let PREV_LOAD = null;
-function buildPrevLoad(w) {
-  const p = prevWeek(w), map = {};
-  if (p) p.sessions.forEach(s => s.blocks.forEach(b => (b.lines || []).forEach(l => {
-    if (l.z && /%/.test(l.z) && !/BW/.test(l.z)) map[l.t.toLowerCase()] = { q: l.q, z: l.z };
-  })));
-  return p ? { n: p.number, map } : null;
-}
 function lineHTML(l) {
   const chips = [...(l.z ? [l.z] : []), ...(l.chips || [])];
-  let prev = "";
-  if (PREV_LOAD && l.z && /%/.test(l.z) && !/BW/.test(l.z)) {
-    const o = PREV_LOAD.map[l.t.toLowerCase()];
-    // "all'80%", "all'11%" ma "al 75%": l'articolo segue il suono del numero.
-    const art = o && /^(8|11)/.test(o.z) ? "all'" : "al ";
-    if (o && (o.q !== l.q || o.z !== l.z)) prev = `<div class="prev">Settimana ${PREV_LOAD.n}: ${esc(o.q)} ${art}${esc(o.z)}</div>`;
-  }
   return `<div class="line">${l.q ? `<div class="q">${esc(l.q)}</div>` : ""}<div class="body">
     <div class="t">${l.pre ? `<span class="pre">${esc(l.pre)})</span>` : ""}${esc(l.t)}${chips.map(z => `<span class="chip ${zoneClass(z)}">${esc(z)}</span>`).join("")}</div>
-    ${l.r ? `<div class="r">${esc(l.r)}</div>` : ""}${l.s ? `<div class="s">${esc(l.s)}</div>` : ""}${prev}</div></div>`;
+    ${l.r ? `<div class="r">${esc(l.r)}</div>` : ""}${l.s ? `<div class="s">${esc(l.s)}</div>` : ""}</div></div>`;
 }
 function calcHTML(c, bi, ci) {
   const v = store.getInput(c.key, "");
@@ -348,7 +332,6 @@ let CUR_SESSION = null;
 function sessionView(i) {
   const s = W().sessions[i];
   if (!s) return homeView();
-  PREV_LOAD = buildPrevLoad(W());
   CUR_SESSION = s;
   return `<header class="hero"><p class="kicker">Allenamento ${i + 1}${s.optional ? ", facoltativo" : ""}</p><h1>${esc(s.title)}</h1>${s.summary ? `<p class="sub">${esc(s.summary)}</p>` : ""}</header>
     ${s.blocks.map(blockHTML).join("")}

@@ -289,7 +289,7 @@ await fr.locator(".nc-sum >> text=Recupero corretto").waitFor();
 ok(true, "anteprima aggiornata dopo la correzione");
 await pc.click("#pubBtn");
 await pc.waitForSelector(".c-week >> text=Settimana 23");
-ok(await pc.locator(".c-week .chip.pub").count() === 1, "settimana pubblicata dalla dashboard");
+ok((await pc.textContent("#head .chip")) === "Online", "settimana pubblicata dalla dashboard");
 await pd.goto(BASE + "/#home"); await pd.reload();
 await pd.waitForSelector(".next-card");
 ok((await pd.textContent("h1")).includes("23"), "l'atleta vede la settimana pubblicata dal coach");

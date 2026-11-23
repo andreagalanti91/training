@@ -73,8 +73,6 @@ Campi tutti facoltativi tranne `title`:
 
 - `t` (obbligatorio): esercizio/distanza. `q`: quantità a sinistra in arancione. `pre`: lettera della sezione.
 - `z`: zona o percentuale, diventa un chip colorato (Z2, Z3, Z4, Z5, "Z2–Z3", "75%"...).
-  Le righe con percentuale mostrano automaticamente il confronto con la settimana precedente
-  se esiste una riga con lo stesso `t`.
 - `r`: recupero/dettaglio. `s`: alternativa in grigio. `chips`: chip aggiuntivi. `m`: metri (nuoto).
 
 ### Score e classifica (`score`)

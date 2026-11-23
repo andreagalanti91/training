@@ -38,10 +38,10 @@ function statusOf(n) {
   const r = dbRow(n);
   if (r) {
     if (r.status === "draft") return { cls: "draft", txt: "Bozza" };
-    if (r.publish_at && new Date(r.publish_at) > new Date()) return { cls: "sched", txt: `Programmata ${fmtDT(r.publish_at)}` };
-    return { cls: "pub", txt: "Pubblicata" };
+    if (r.publish_at && new Date(r.publish_at) > new Date()) return { cls: "sched", txt: "Programmata", long: `Programmata ${fmtDT(r.publish_at)}` };
+    return { cls: "pub", txt: "Online" };
   }
-  return fileWeek(n) ? { cls: "file", txt: "Pubblicata (file)" } : { cls: "draft", txt: "Nuova" };
+  return fileWeek(n) ? { cls: "pub", txt: "Online", long: "Online (da file)" } : { cls: "draft", txt: "Nuova" };
 }
 
 async function loadAll() {
@@ -116,11 +116,11 @@ function renderEditor() {
     <div class="c-grid">
       <div class="c-col">
         <section class="card glass c-card">
-          <div class="card-head"><h2>Testo del coach</h2></div>
-          <div class="c-row">
-            <label class="field"><span>Settimana</span><input id="wNum" type="number" min="1" value="${cur.number}" ${cur.isNew ? "" : "disabled"}></label>
-            <label class="field"><span>Data di pubblicazione</span><input id="wDate" type="date" value="${esc(cur.date)}"></label>
-          </div>
+          <div class="card-head"><h2>Testo del coach</h2>
+            <div class="c-mini">
+              <label><span>Settimana</span><input id="wNum" type="number" min="1" value="${cur.number}" ${cur.isNew ? "" : "disabled"}></label>
+              <label><span>Data</span><input id="wDate" type="date" value="${esc(cur.date)}"></label>
+            </div></div>
           <textarea id="wText" class="c-text" placeholder="Incolla qui la programmazione della settimana, così come la scrivi agli atleti.">${esc(cur.text)}</textarea>
           <div class="c-btns">
             <button class="btn btn-primary" id="aiBtn" type="button">Imposta con IA</button>
@@ -174,8 +174,8 @@ function renderHead() {
   const fromDb = !!dbRow(cur.number) && !cur.isNew;
   const r = dbRow(cur.number);
   $("head").innerHTML = `
-    <div><p class="kicker">${esc(cur.data?.program || prevWeek(cur.number)?.program || "Hybrid ProGram")}</p>
-      <h1>Settimana ${cur.number} <span class="chip ${st.cls}">${esc(st.txt)}</span>${cur.dirty ? ` <span class="chip">Modifiche non salvate</span>` : ""}</h1></div>
+    <div>
+      <h1>Settimana ${cur.number} <span class="chip ${st.cls}">${esc(st.long || st.txt)}</span>${cur.dirty ? ` <span class="chip">Modifiche non salvate</span>` : ""}</h1></div>
     <div class="c-actions">
       ${fromDb && r.status === "draft" ? `<button class="btn btn-ghost btn-sm danger" id="delBtn" type="button">Elimina bozza</button>` : ""}
       ${fromDb && r.status === "published" ? `<button class="btn btn-ghost btn-sm" id="pullBtn" type="button">Ritira</button>` : ""}
