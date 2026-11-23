@@ -36,23 +36,32 @@ Deno.serve(async (req) => {
   const system = String(body.system || ""), user = String(body.user || "");
   if (!user.trim() || user.length > 200_000 || system.length > 60_000) return reply(400, { message: "Testo mancante o troppo lungo." });
 
-  const model = Deno.env.get("GEMINI_MODEL") || "gemini-flash-latest";
+  // Sul piano gratuito Gemini a volte è sovraccarico (503): riproviamo e poi passiamo a un modello più leggero.
+  const models = [Deno.env.get("GEMINI_MODEL") || "gemini-flash-latest", "gemini-flash-lite-latest"];
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 140_000);
+  const call = (model: string) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+    method: "POST",
+    signal: ctl.signal,
+    headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: [{ role: "user", parts: [{ text: user }] }],
+      generationConfig: { responseMimeType: "application/json", temperature: 0.1, maxOutputTokens: 60000 },
+    }),
+  });
   try {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-      method: "POST",
-      signal: ctl.signal,
-      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents: [{ role: "user", parts: [{ text: user }] }],
-        generationConfig: { responseMimeType: "application/json", temperature: 0.1, maxOutputTokens: 60000 },
-      }),
-    });
-    const d = await r.json().catch(() => ({}));
-    if (r.status === 429) return reply(429, { message: "Limite gratuito di Gemini raggiunto per ora: riprova tra qualche minuto." });
-    if (!r.ok) return reply(424, { message: `Gemini ha risposto con un errore (${r.status}): ${d?.error?.message || "sconosciuto"}` });
+    let r: Response | null = null, d: any = {}, model = models[0];
+    for (const [i, m] of [models[0], models[0], models[1], models[1]].entries()) {
+      model = m;
+      r = await call(m);
+      d = await r.json().catch(() => ({}));
+      if (r.ok || ![500, 503].includes(r.status)) break;
+      await new Promise(res => setTimeout(res, 1500 * (i + 1)));
+    }
+    if (r!.status === 429) return reply(429, { message: "Limite gratuito di Gemini raggiunto per ora: riprova tra qualche minuto." });
+    if (r!.status === 503 || r!.status === 500) return reply(424, { message: "Gemini è sovraccarico in questo momento: riprova tra qualche minuto, oppure usa ChatGPT o Claude a mano." });
+    if (!r!.ok) return reply(424, { message: `Gemini ha risposto con un errore (${r!.status}): ${d?.error?.message || "sconosciuto"}` });
     const cand = d?.candidates?.[0];
     const text = (cand?.content?.parts || []).filter((p: { thought?: boolean }) => !p.thought).map((p: { text?: string }) => p.text || "").join("");
     if (!text) return reply(424, { message: `Risposta vuota da Gemini (${cand?.finishReason || d?.promptFeedback?.blockReason || "motivo sconosciuto"}).` });
