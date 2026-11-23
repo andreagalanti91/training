@@ -9,6 +9,7 @@ import { randomUUID } from "node:crypto";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = +(process.argv[2] || 8787);
 const CONFIRM = process.env.CONFIRM === "1";
+const MAX_WEEK = +(process.env.PROGRAM_MAX_WEEK || 0);
 const TYPES = { ".html": "text/html", ".js": "application/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".webmanifest": "application/manifest+json" };
 
 const users = new Map();   // email -> { id, email, password, confirmed, user_metadata }
@@ -111,7 +112,11 @@ const server = createServer(async (req, res) => {
   try {
     const f = join(ROOT, p === "/" ? "index.html" : decodeURIComponent(p));
     if (!f.startsWith(ROOT)) throw 0;
-    const data = await readFile(f);
+    let data = await readFile(f);
+    // I test usano una programmazione fissa: le settimane successive a MAX_WEEK vengono nascoste.
+    if (MAX_WEEK && p.endsWith("/data/program.json")) {
+      const j = JSON.parse(data); j.weeks = j.weeks.filter(w => w.number <= MAX_WEEK); data = JSON.stringify(j);
+    }
     res.writeHead(200, { "Content-Type": TYPES[extname(f)] || "application/octet-stream", "Cache-Control": "no-store" });
     res.end(data);
   } catch (e) { res.writeHead(404); res.end("not found"); }

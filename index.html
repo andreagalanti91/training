@@ -15,7 +15,7 @@
 <title>Hybrid ProGram</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/app.css?v=26">
+<link rel="stylesheet" href="assets/app.css?v=27">
 <script>
   // Prima del primo disegno: modalità app installata, così l'altezza è giusta da subito.
   if (navigator.standalone === true || matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches)
@@ -34,7 +34,12 @@
 
 <main id="app"></main>
 
-<div class="tabwrap"><nav class="tabbar glass" aria-label="Sezioni"><div class="track" id="track"><div class="lens" id="lens"></div></div></nav></div>
+<div class="tabwrap"><nav class="tabbar glass" aria-label="Sezioni">
+  <div class="side-head" id="sideHead"><div class="side-brand"><img src="icon-192.png" alt="" width="32" height="32"><b>Hybrid ProGram</b></div></div>
+  <p class="side-label" id="sideLabel">Settimana</p>
+  <div class="track" id="track"><div class="lens" id="lens"></div></div>
+  <div class="side-foot" id="sideFoot"><p class="side-keys"><kbd>←</kbd><kbd>→</kbd> cambia allenamento</p></div>
+</nav></div>
 
 <div class="backdrop" id="backdrop"></div>
 <section class="sheet" id="sheetWeeks" role="dialog" aria-modal="true" aria-labelledby="swT" aria-hidden="true" inert>
@@ -59,7 +64,7 @@
 </section>
 <div class="toast glass" id="toast" role="status" aria-live="polite"></div>
 
-<script src="assets/config.js?v=26"></script>
-<script type="module" src="assets/app.js?v=26"></script>
+<script src="assets/config.js?v=27"></script>
+<script type="module" src="assets/app.js?v=27"></script>
 </body>
 </html>

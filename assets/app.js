@@ -100,12 +100,12 @@ const track = $("track"), lens = $("lens");
 let TABS = [];
 function buildTabs() {
   track.querySelectorAll(".tab").forEach(b => b.remove());
-  TABS = [{ id: "home", label: "Home", icon: "home" }, ...W().sessions.map((s, i) => ({ id: "s" + (i + 1), label: s.tab || "G" + (i + 1), icon: s.icon, idx: i }))];
+  TABS = [{ id: "home", label: "Home", icon: "home", sub: "Riepilogo e analisi" }, ...W().sessions.map((s, i) => ({ id: "s" + (i + 1), label: s.tab || "G" + (i + 1), icon: s.icon, idx: i, sub: s.title + (s.optional ? " · facoltativo" : "") }))];
   TABS.forEach(t => {
     const b = document.createElement("button");
     b.className = "tab"; b.dataset.id = t.id;
     b.setAttribute("aria-label", t.idx === undefined ? "Home" : `Allenamento ${t.idx + 1}, ${t.label}`);
-    b.innerHTML = svg(t.icon) + `<span>${esc(t.label)}</span><i class="dot"></i>`;
+    b.innerHTML = svg(t.icon) + `<span>${esc(t.label)}</span><em class="tsub">${esc(t.sub)}</em><kbd class="tkey">${t.idx === undefined ? "H" : t.idx + 1}</kbd><i class="dot"></i>`;
     b.addEventListener("click", () => go(t.id));
     track.appendChild(b);
   });
@@ -117,19 +117,51 @@ function syncTabs(id, smooth = true) {
     on ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current");
     b.classList.toggle("done", i > 0 && isDone(i - 1));
     if (on) {
-      lens.style.width = b.offsetWidth + "px"; lens.style.transform = `translateX(${b.offsetLeft}px)`;
-      const target = b.offsetLeft - (track.clientWidth - b.offsetWidth) / 2;
-      track.scrollTo({ left: Math.max(0, target), behavior: smooth ? "smooth" : "auto" });
+      lens.style.width = b.offsetWidth + "px";
+      if (desk.matches) {
+        lens.style.height = b.offsetHeight + "px"; lens.style.transform = `translateY(${b.offsetTop}px)`;
+        const target = b.offsetTop - (track.clientHeight - b.offsetHeight) / 2;
+        track.scrollTo({ top: Math.max(0, target), behavior: smooth ? "smooth" : "auto" });
+      } else {
+        lens.style.height = ""; lens.style.transform = `translateX(${b.offsetLeft}px)`;
+        const target = b.offsetLeft - (track.clientWidth - b.offsetWidth) / 2;
+        track.scrollTo({ left: Math.max(0, target), behavior: smooth ? "smooth" : "auto" });
+      }
     }
   });
   fades();
 }
 function fades() {
+  if (desk.matches) { track.classList.remove("fade-l", "fade-r"); return; }
   const max = track.scrollWidth - track.clientWidth;
   track.classList.toggle("fade-l", track.scrollLeft > 4);
   track.classList.toggle("fade-r", track.scrollLeft < max - 4);
 }
 track.addEventListener("scroll", fades, { passive: true });
+
+/* ---------- Desktop: sidebar a sinistra ---------- */
+const desk = matchMedia("(min-width: 1024px)");
+function placeChrome() {
+  const top = document.querySelector(".topbar"), wb = $("weekBtn"), pb = $("profileBtn");
+  if (desk.matches) { $("sideHead").appendChild(wb); $("sideFoot").prepend(pb); }
+  else { top.prepend(wb); top.appendChild(pb); }
+  root.classList.toggle("desk", desk.matches);
+  navReset();
+  if (TABS.length) syncTabs(current(), false);
+}
+desk.addEventListener("change", placeChrome);
+// Scorciatoie da tastiera: frecce per cambiare allenamento, H per la Home, 1-9 per gli allenamenti.
+document.addEventListener("keydown", e => {
+  if (!TABS.length || openSheet || e.metaKey || e.ctrlKey || e.altKey || root.classList.contains("auth-on")) return;
+  if (e.target.closest("input, textarea, select, [contenteditable]")) return;
+  const idx = TABS.findIndex(x => x.id === current());
+  let n = -1;
+  if (e.key === "ArrowRight" || e.key === "j") n = idx + 1;
+  else if (e.key === "ArrowLeft" || e.key === "k") n = idx - 1;
+  else if (e.key === "h" || e.key === "H") n = 0;
+  else if (/^[1-9]$/.test(e.key)) n = +e.key;
+  if (TABS[n]) { e.preventDefault(); go(TABS[n].id); }
+});
 
 /* ---------- Top bar ---------- */
 const initials = () => {
@@ -142,6 +174,7 @@ function syncTop() {
   if (!weeks.length) return;
   const wb = $("weekBtn");
   wb.hidden = false;
+  $("sideLabel").textContent = `Settimana ${W().number} · ${W().sessions.length} allenamenti`;
   wb.innerHTML = `${svg("cal")}<span>Sett. ${W().number}</span>${svg("chev", 2.4).replace("<svg", '<svg class="chev"')}`;
   wb.setAttribute("aria-label", `Settimana ${W().number}, cambia settimana`);
   syncProfileBtn();
@@ -149,7 +182,8 @@ function syncTop() {
 function syncProfileBtn() {
   const pb = $("profileBtn");
   pb.hidden = false;
-  pb.innerHTML = `<span class="ini">${esc(initials())}</span><i class="sync-dot"></i>`;
+  const st0 = store.getStatus();
+  pb.innerHTML = `<span class="ini">${esc(initials())}</span><span class="pname"><b>${esc(displayName() || api.currentUser()?.email || "Profilo")}</b><small>${st0 === "offline" ? "Offline" : st0 === "error" ? "Errore di sincronizzazione" : "Profilo e impostazioni"}</small></span><i class="sync-dot"></i>`;
   const st = store.getStatus();
   pb.classList.toggle("offline", st === "offline"); pb.classList.toggle("error", st === "error");
   pb.setAttribute("aria-label", `Profilo${st === "offline" ? ", offline: i dati verranno salvati appena torni online" : st === "error" ? ", errore di sincronizzazione" : ""}`);
@@ -167,6 +201,7 @@ function render(opts = {}) {
   const dir = opts.fresh || opts.keep ? "" : idx > lastIdx ? " from-right" : idx < lastIdx ? " from-left" : "";
   lastIdx = idx;
   const y = app.scrollTop;
+  app.dataset.view = id === "home" ? "home" : "session";
   app.innerHTML = `<div class="view${dir}${opts.keep ? " still" : ""}">${id === "home" ? homeView() : sessionView(+id.slice(1) - 1)}</div>`;
   bind(id);
   syncTabs(id, !opts.fresh);
@@ -213,6 +248,7 @@ function homeView() {
   const name = displayName().split(/\s+/)[0];
   return `
     <header class="hero"><p class="kicker">${name ? `Ciao ${esc(name)} · ` : ""}${esc(w.program)}</p><h1>Settimana ${w.number}</h1></header>
+    <div class="home-grid"><div class="col-a">
     ${nextCard}
     ${charts.kpiHTML(st)}
     ${charts.activityHTML(st, w.number)}
@@ -220,11 +256,13 @@ function homeView() {
       <div class="card-head"><div class="coach-id"><span class="avatar">${svg("whistle", 2)}</span><div><h2>Note del coach</h2><small>Settimana ${w.number}</small></div></div></div>
       ${notes}
     </section>
+    </div><div class="col-b">
     <h2 class="section-title">Le tue analisi</h2>
     ${charts.insightsHTML(st, weeks)}
     ${charts.heatmapHTML(st)}
     ${charts.loadHTML(st)}
-    ${charts.disciplineHTML(st)}`;
+    ${charts.disciplineHTML(st)}
+    </div></div>`;
 }
 
 /* ---------- Session ---------- */
@@ -707,7 +745,7 @@ function fitShell() {
   // L'altezza esplicita serve solo con la tastiera aperta; altrimenti la shell è ancorata ai bordi.
   root.style.setProperty("--app-h", (kb ? vis : inner) + "px");
   const bar = document.querySelector(".tabwrap");
-  if (bar && !kb && bar.offsetHeight) root.style.setProperty("--bar-h", Math.round(bar.offsetHeight) + "px");
+  if (bar && !kb && !desk.matches && bar.offsetHeight) root.style.setProperty("--bar-h", Math.round(bar.offsetHeight) + "px");
 }
 function probeH(expr) {
   const d = document.createElement("div");
@@ -748,7 +786,7 @@ function showDiag() {
 
 /* La navbar si ritrae scorrendo verso il basso e torna piena scorrendo verso l'alto. */
 let navLastY = 0, navAcc = 0, navMin = false, navTick = false;
-function navSet(on) { if (on !== navMin) { navMin = on; root.classList.toggle("nav-min", on); } }
+function navSet(on) { if (desk.matches) on = false; if (on !== navMin) { navMin = on; root.classList.toggle("nav-min", on); } }
 function navOnScroll() {
   if (navTick) return;
   navTick = true;
@@ -870,3 +908,4 @@ async function refreshSilently() {
   } catch (e) {}
 }
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+placeChrome();
